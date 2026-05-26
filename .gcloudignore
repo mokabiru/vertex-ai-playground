@@ -1,0 +1,8 @@
+.git
+.gcloudignore
+.dockerignore
+python-standalone.tar.gz
+python/
+.env
+.env.example
+*.log

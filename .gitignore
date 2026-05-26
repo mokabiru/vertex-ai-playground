@@ -1,0 +1,17 @@
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Mac system files
+.DS_Store
+
+# Local Python environment and standalone archive
+python/
+python-standalone.tar.gz
+
+# Node.js dependencies (just in case)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

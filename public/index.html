@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vertex AI Playground — Gemini & Claude Arena</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Background Glowing Aura Decors -->
+  <div class="glow-orb glow-gemini"></div>
+  <div class="glow-orb glow-claude"></div>
+
+  <!-- Header Section -->
+  <header class="app-header">
+    <div class="logo-area">
+      <div class="logo-icon-cluster">
+        <span class="logo-particle gemini-dot"></span>
+        <span class="logo-particle claude-dot"></span>
+      </div>
+      <div class="logo-text">
+        <h1>VERTEX AI <span>PLAYGROUND</span></h1>
+        <p>Gemini & Claude REST API Multi-Stream Console</p>
+      </div>
+    </div>
+    
+    <div class="header-controls">
+      <!-- Sandbox / Live Badge -->
+      <div id="sandbox-badge" class="badge-status sandbox-active">
+        <span class="pulse-indicator"></span>
+        <span class="badge-text">SANDBOX MODE ACTIVE</span>
+      </div>
+      <button id="btn-open-config" class="btn btn-secondary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        GCP Credentials
+      </button>
+    </div>
+  </header>
+
+  <!-- Main View Grid -->
+  <main class="main-container">
+    
+    <!-- Sidebar: Configuration Panel -->
+    <aside class="sidebar-panel">
+      
+      <!-- Panel Header -->
+      <div class="sidebar-header">
+        <h3>CONTROLS</h3>
+        <span class="divider"></span>
+      </div>
+
+      <!-- Mode Selector (Sandbox Switch) -->
+      <div class="control-card sandbox-toggle-card">
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <span class="toggle-label">Sandbox Mode</span>
+            <span class="toggle-desc">Simulate requests without billing/keys</span>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="sandbox-checkbox" checked>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Parameters Section -->
+      <div class="control-group">
+        <h4>MODEL PARAMETERS</h4>
+        
+        <!-- System Prompt -->
+        <div class="control-card">
+          <label for="system-prompt" class="field-label">System Instruction</label>
+          <textarea id="system-prompt" placeholder="Define system-level instructions, constraints, or personality guidelines..."></textarea>
+        </div>
+
+        <!-- Temperature -->
+        <div class="control-card">
+          <div class="slider-row">
+            <label for="param-temp" class="field-label">Temperature</label>
+            <span id="temp-val" class="slider-digital-value">0.7</span>
+          </div>
+          <input type="range" id="param-temp" min="0" max="1" step="0.05" value="0.7" class="slider">
+          <div class="slider-labels">
+            <span>Precise (0.0)</span>
+            <span>Creative (1.0)</span>
+          </div>
+        </div>
+
+        <!-- Max Output Tokens -->
+        <div class="control-card">
+          <div class="slider-row">
+            <label for="param-tokens" class="field-label">Max Output Tokens</label>
+            <span id="tokens-val" class="slider-digital-value">2048</span>
+          </div>
+          <input type="range" id="param-tokens" min="128" max="8192" step="128" value="2048" class="slider">
+          <div class="slider-labels">
+            <span>128</span>
+            <span>8192</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing Info Box -->
+      <div class="control-card pricing-card">
+        <h5>💡 Vertex AI Pricing Reference</h5>
+        <ul>
+          <li><strong>Gemini 3.5 Flash</strong>: $0.075 / 1M In | $0.30 / 1M Out</li>
+          <li><strong>Gemini 2.5 Flash</strong>: $0.075 / 1M In | $0.30 / 1M Out</li>
+          <li><strong>Gemini 2.5 Pro</strong>: $1.25 / 1M In | $5.00 / 1M Out</li>
+          <li><strong>Claude Sonnet 4-6</strong>: $3.00 / 1M In | $15.00 / 1M Out</li>
+          <li><strong>Claude Opus 4-7</strong>: $15.00 / 1M In | $75.00 / 1M Out</li>
+          <li><strong>Claude Haiku 4-5</strong>: $0.80 / 1M In | $4.00 / 1M Out</li>
+        </ul>
+      </div>
+
+    </aside>
+
+    <!-- Workspace: Chat Arena -->
+    <section class="chat-workspace">
+      
+      <!-- Workspace Navigation Tabs -->
+      <div class="workspace-tabs">
+        <button id="tab-compare" class="tab-btn active">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M12 12 3 21"/><path d="m12 12 9-9"/><path d="M3 3h5v5"/><path d="M16 21h5v-5"/><path d="M12 12 3 3"/><path d="m12 12 9 9"/></svg>
+          Compare Arena (Side-by-Side)
+        </button>
+        <button id="tab-gemini" class="tab-btn">
+          <span class="model-color-indicator gemini-glow-small"></span>
+          Google Gemini
+        </button>
+        <button id="tab-claude" class="tab-btn">
+          <span class="model-color-indicator claude-glow-small"></span>
+          Anthropic Claude
+        </button>
+      </div>
+
+      <!-- Panes Display Layout Container -->
+      <div id="arena-grid" class="arena-grid split-layout">
+        
+        <!-- PANE 1: Google Gemini -->
+        <article id="pane-gemini" class="arena-pane model-pane-gemini">
+          <div class="pane-header">
+            <div class="model-meta">
+              <!-- Gemini SVG Logo -->
+              <svg class="model-svg-logo gemini-logo" viewBox="0 0 24 24" width="22" height="22">
+                <path fill="url(#gemini-gradient)" d="M12,2 L14.5,9.5 L22,12 L14.5,14.5 L12,22 L9.5,14.5 L2,12 L9.5,9.5 Z" />
+                <defs>
+                  <linearGradient id="gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4285F4" />
+                    <stop offset="50%" stop-color="#9b51e0" />
+                    <stop offset="100%" stop-color="#ea4335" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="model-identity">
+                <h3>Google Gemini</h3>
+                <div class="model-selector-wrapper">
+                  <select id="gemini-model-select" class="dropdown-select">
+                    <option value="gemini-3.5-flash" selected>gemini-3.5-flash (Latest Stable Default)</option>
+                    <option value="gemini-2.5-flash">gemini-2.5-flash (Stable Flash)</option>
+                    <option value="gemini-2.5-pro">gemini-2.5-pro (Stable Pro)</option>
+                    <option value="gemini-2.0-flash">gemini-2.0-flash (Deprecated)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Real-time metrics -->
+            <div class="metrics-strip">
+              <div class="metric-block" title="Time taken to receive the first token response">
+                <span class="metric-label">TTFT</span>
+                <span id="gemini-metric-ttft" class="metric-value">--</span>
+              </div>
+              <div class="metric-block" title="Generation speed in tokens per second">
+                <span class="metric-label">Tokens/s</span>
+                <span id="gemini-metric-speed" class="metric-value">--</span>
+              </div>
+              <div class="metric-block" title="Approximate output token count">
+                <span class="metric-label">Tokens</span>
+                <span id="gemini-metric-count" class="metric-value">0</span>
+              </div>
+              <div class="metric-block" title="Estimated API cost (Input/Output)">
+                <span class="metric-label">Est. Cost</span>
+                <span id="gemini-metric-cost" class="metric-value">$0.00000</span>
+              </div>
+            </div>
+
+            <!-- Token Breakdown Segmented Bar -->
+            <div class="token-breakdown-panel">
+              <div class="token-bar-container">
+                <div class="token-bar-track">
+                  <div id="gemini-bar-input" class="token-bar-segment input-segment" style="width: 0%"></div>
+                  <div id="gemini-bar-thinking" class="token-bar-segment thinking-segment" style="width: 0%"></div>
+                  <div id="gemini-bar-output" class="token-bar-segment output-segment" style="width: 0%"></div>
+                </div>
+              </div>
+              <div class="token-legend">
+                <span class="legend-item input-legend"><span class="legend-dot"></span>In: <strong id="gemini-legend-input">0</strong></span>
+                <span class="legend-item thinking-legend"><span class="legend-dot"></span>Think: <strong id="gemini-legend-thinking">0</strong></span>
+                <span class="legend-item output-legend"><span class="legend-dot"></span>Out: <strong id="gemini-legend-output">0</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat stream area -->
+          <div id="gemini-console" class="pane-content-console">
+            <div class="placeholder-msg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <p>Enter a prompt below to stream Gemini's response.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- PANE 2: Anthropic Claude -->
+        <article id="pane-claude" class="arena-pane model-pane-claude">
+          <div class="pane-header">
+            <div class="model-meta">
+              <!-- Claude SVG Logo -->
+              <svg class="model-svg-logo claude-logo" viewBox="0 0 24 24" width="22" height="22">
+                <path fill="#e05a47" d="M12,2 L13.5,8 L19,6 L15,10.5 L21.5,12 L15,13.5 L19,18 L13.5,16 L12,22 L10.5,16 L5,18 L9,13.5 L2.5,12 L9,10.5 L5,6 L10.5,8 Z" />
+              </svg>
+              <div class="model-identity">
+                <h3>Anthropic Claude</h3>
+                <div class="model-selector-wrapper">
+                  <select id="claude-model-select" class="dropdown-select">
+                    <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6 (Latest Sonnet)</option>
+                    <option value="claude-opus-4-7">claude-opus-4-7 (Latest Opus)</option>
+                    <option value="claude-haiku-4-5@20251001">claude-haiku-4-5 (Speed/Cost)</option>
+                    <option value="claude-3-5-sonnet@20241022">claude-3-5-sonnet-v2 (Legacy)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Real-time metrics -->
+            <div class="metrics-strip">
+              <div class="metric-block" title="Time taken to receive the first token response">
+                <span class="metric-label">TTFT</span>
+                <span id="claude-metric-ttft" class="metric-value">--</span>
+              </div>
+              <div class="metric-block" title="Generation speed in tokens per second">
+                <span class="metric-label">Tokens/s</span>
+                <span id="claude-metric-speed" class="metric-value">--</span>
+              </div>
+              <div class="metric-block" title="Approximate output token count">
+                <span class="metric-label">Tokens</span>
+                <span id="claude-metric-count" class="metric-value">0</span>
+              </div>
+              <div class="metric-block" title="Estimated API cost (Input/Output)">
+                <span class="metric-label">Est. Cost</span>
+                <span id="claude-metric-cost" class="metric-value">$0.00000</span>
+              </div>
+            </div>
+
+            <!-- Token Breakdown Segmented Bar -->
+            <div class="token-breakdown-panel">
+              <div class="token-bar-container">
+                <div class="token-bar-track">
+                  <div id="claude-bar-input" class="token-bar-segment input-segment" style="width: 0%"></div>
+                  <div id="claude-bar-thinking" class="token-bar-segment thinking-segment" style="width: 0%"></div>
+                  <div id="claude-bar-output" class="token-bar-segment output-segment" style="width: 0%"></div>
+                </div>
+              </div>
+              <div class="token-legend">
+                <span class="legend-item input-legend"><span class="legend-dot"></span>In: <strong id="claude-legend-input">0</strong></span>
+                <span class="legend-item thinking-legend"><span class="legend-dot"></span>Think: <strong id="claude-legend-thinking">0</strong></span>
+                <span class="legend-item output-legend"><span class="legend-dot"></span>Out: <strong id="claude-legend-output">0</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat stream area -->
+          <div id="claude-console" class="pane-content-console">
+            <div class="placeholder-msg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <p>Enter a prompt below to stream Claude's response.</p>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Shared Input Prompter Panel -->
+      <footer class="input-panel">
+        <form id="prompt-form" class="prompt-form">
+          <div class="prompt-input-container">
+            <textarea id="prompt-input" placeholder="Type a message or challenge..." required></textarea>
+            <div class="prompt-btn-group">
+              <button type="button" id="btn-clear-arena" class="btn btn-secondary-icon" title="Clear all consoles">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              </button>
+              <button type="submit" id="btn-submit-prompt" class="btn btn-primary-cta">
+                <span>DUEL STREAM</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </form>
+      </footer>
+
+    </section>
+
+  </main>
+
+  <!-- GCP Credentials overlay dialog -->
+  <dialog id="config-dialog" class="config-dialog">
+    <div class="dialog-frame">
+      <header class="dialog-header">
+        <h3>Google Cloud Platform Credentials</h3>
+        <button id="btn-close-config" class="btn-close-round">&times;</button>
+      </header>
+      
+      <div class="dialog-body">
+        <p class="config-dialog-intro">
+          These credentials are used by your local server to authenticate securely with the Vertex AI REST endpoints. They are never sent online other than directly to Google's official OAuth/Vertex servers.
+        </p>
+
+        <!-- Project & Location -->
+        <div class="form-row-grid">
+          <div class="form-field">
+            <label for="gcp-project-id" class="field-label-req">GCP Project ID</label>
+            <input type="text" id="gcp-project-id" placeholder="e.g. vertex-ai-demo-4402">
+          </div>
+          <div class="form-field">
+            <label for="gcp-region" class="field-label-req">GCP Location/Region</label>
+            <select id="gcp-region" class="dropdown-select-large">
+              <option value="global">global (Multi-region Routing)</option>
+              <option value="us-central1" selected>us-central1 (Iowa)</option>
+              <option value="us-east4">us-east4 (N. Virginia)</option>
+              <option value="europe-west1">europe-west1 (Belgium)</option>
+              <option value="europe-west3">europe-west3 (Frankfurt)</option>
+              <option value="asia-northeast1">asia-northeast1 (Tokyo)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Auth Method Selector -->
+        <div class="form-field auth-method-block">
+          <label class="field-label">Authentication Method</label>
+          <div class="radio-pill-group">
+            <label class="radio-pill">
+              <input type="radio" name="auth-method" value="token" checked>
+              <span class="pill-btn">GCP OAuth Access Token</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="auth-method" value="serviceAccount">
+              <span class="pill-btn">Service Account JSON Key</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Access Token Option Form block -->
+        <div id="auth-box-token" class="auth-box-container visible">
+          <div class="form-field">
+            <label for="gcp-access-token" class="field-label-req">OAuth 2.0 Access Token</label>
+            <textarea id="gcp-access-token" class="mono-font" placeholder="Enter output of 'gcloud auth print-access-token' (ya29.c.Ko0Bv...)"></textarea>
+            <span class="field-tip">⚠️ Note: GCP Access tokens expire after 1 hour. You will need to refresh this.</span>
+          </div>
+        </div>
+
+        <!-- Service Account Option Form block -->
+        <div id="auth-box-sa" class="auth-box-container">
+          <div class="form-field">
+            <label for="gcp-sa-key" class="field-label-req">Service Account JSON File / Key Contents</label>
+            <textarea id="gcp-sa-key" class="mono-font" placeholder='Paste full content of your Service Account JSON private key here. e.g. {"type": "service_account", "project_id": ...}'></textarea>
+            <span class="field-tip">💡 Tip: This backend server uses RSA signature natively to exchange this for access tokens. It handles auto-refreshing for you.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <footer class="dialog-footer">
+        <button id="btn-clear-config" class="btn btn-secondary-danger">Clear Credentials</button>
+        <button id="btn-save-config" class="btn btn-primary">Save Settings</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Notification Toaster -->
+  <div id="toast" class="toast-notification">Notification message</div>
+
+  <script src="index.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.git
+.env
+.env.example
+.gcloudignore
+Dockerfile
+node_modules
+*.log
