@@ -71,31 +71,7 @@
       <!-- Parameters Section -->
       <div class="control-group">
 
-        <!-- Gemini Thinking Settings (Dynamic) -->
-        <div class="control-card gemini-thinking-card" id="gemini-thinking-container">
-          <div class="thinking-label-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <label for="gemini-thinking-select" class="field-label" style="margin-bottom: 0;">Gemini Thinking</label>
-            <span class="badge-thinking-type" id="gemini-thinking-badge">G3.5 Mode</span>
-          </div>
-          <div class="select-wrapper">
-            <select id="gemini-thinking-select" class="dropdown-select-large">
-              <!-- Options populated dynamically -->
-            </select>
-          </div>
-          
-          <!-- Optional Budget Slider, only visible if G2.5 Custom mode is active -->
-          <div class="thinking-budget-slider-wrapper" id="thinking-budget-slider-wrapper" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-translucent);">
-            <div class="slider-row">
-              <label for="gemini-thinking-budget" class="field-label">Thinking Budget</label>
-              <span id="thinking-budget-val" class="slider-digital-value">1024</span>
-            </div>
-            <input type="range" id="gemini-thinking-budget" min="1024" max="8192" step="512" value="1024" class="slider">
-            <div class="slider-labels">
-              <span>1024</span>
-              <span>8192</span>
-            </div>
-          </div>
-        </div>
+        <!-- Gemini Thinking Settings relocated inline next to model selector -->
 
         <h4>MODEL PARAMETERS</h4>
         
@@ -186,7 +162,29 @@
                     <option value="gemini-2.5-pro">gemini-2.5-pro (Stable Pro)</option>
                     <option value="gemini-2.0-flash">gemini-2.0-flash (Deprecated)</option>
                   </select>
+
+                  <!-- Inline Gemini Thinking Selector Capsule -->
+                  <div id="gemini-thinking-container" class="thinking-selector-inline">
+                    <select id="gemini-thinking-select" class="dropdown-select dropdown-select-thinking">
+                      <!-- Options populated dynamically by index.js -->
+                    </select>
+                    <span class="badge-thinking-type" id="gemini-thinking-badge">G3.5 Mode</span>
+                  </div>
+
                   <span id="gemini-model-price" class="model-price-tag"></span>
+                </div>
+
+                <!-- Contextual Budget Slider -->
+                <div class="thinking-budget-slider-wrapper" id="thinking-budget-slider-wrapper" style="display: none;">
+                  <div class="slider-row">
+                    <label for="gemini-thinking-budget" class="field-label">Thinking Budget</label>
+                    <span id="thinking-budget-val" class="slider-digital-value">1024</span>
+                  </div>
+                  <input type="range" id="gemini-thinking-budget" min="1024" max="8192" step="512" value="1024" class="slider">
+                  <div class="slider-labels">
+                    <span>1024</span>
+                    <span>8192</span>
+                  </div>
                 </div>
               </div>
             </div>
