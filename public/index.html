@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vertex AI Playground — Gemini & Claude Arena</title>
+  <title>Agent Platform Playground</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,8 +24,8 @@
         <span class="logo-particle claude-dot"></span>
       </div>
       <div class="logo-text">
-        <h1>VERTEX AI <span>PLAYGROUND</span></h1>
-        <p>Gemini & Claude REST API Multi-Stream Console</p>
+        <h1>AGENT PLATFORM <span>PLAYGROUND</span></h1>
+        <p>Gemini and other models multi-stream console</p>
       </div>
     </div>
     
@@ -70,29 +70,61 @@
 
       <!-- Parameters Section -->
       <div class="control-group">
+
+        <!-- Gemini Thinking Settings (Dynamic) -->
+        <div class="control-card gemini-thinking-card" id="gemini-thinking-container">
+          <div class="thinking-label-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="gemini-thinking-select" class="field-label" style="margin-bottom: 0;">Gemini Thinking</label>
+            <span class="badge-thinking-type" id="gemini-thinking-badge">G3.5 Mode</span>
+          </div>
+          <div class="select-wrapper">
+            <select id="gemini-thinking-select" class="dropdown-select-large">
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+          
+          <!-- Optional Budget Slider, only visible if G2.5 Custom mode is active -->
+          <div class="thinking-budget-slider-wrapper" id="thinking-budget-slider-wrapper" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-translucent);">
+            <div class="slider-row">
+              <label for="gemini-thinking-budget" class="field-label">Thinking Budget</label>
+              <span id="thinking-budget-val" class="slider-digital-value">1024</span>
+            </div>
+            <input type="range" id="gemini-thinking-budget" min="1024" max="8192" step="512" value="1024" class="slider">
+            <div class="slider-labels">
+              <span>1024</span>
+              <span>8192</span>
+            </div>
+          </div>
+        </div>
+
         <h4>MODEL PARAMETERS</h4>
         
         <!-- System Prompt -->
-        <div class="control-card">
+        <div class="control-card system-prompt-card">
           <label for="system-prompt" class="field-label">System Instruction</label>
           <textarea id="system-prompt" placeholder="Define system-level instructions, constraints, or personality guidelines..."></textarea>
         </div>
 
         <!-- Temperature -->
-        <div class="control-card">
+        <div class="control-card temperature-card">
           <div class="slider-row">
             <label for="param-temp" class="field-label">Temperature</label>
-            <span id="temp-val" class="slider-digital-value">0.7</span>
+            <span id="temp-val" class="slider-digital-value">1.0</span>
           </div>
-          <input type="range" id="param-temp" min="0" max="1" step="0.05" value="0.7" class="slider">
+          <input type="range" id="param-temp" min="0" max="1" step="0.05" value="1.0" class="slider">
           <div class="slider-labels">
             <span>Precise (0.0)</span>
             <span>Creative (1.0)</span>
           </div>
+          <div id="temp-info-note" class="helper-text-note" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 1px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span id="temp-info-text">Claude Thinking Mode is active: Temperature is auto-set to 1.0.</span>
+          </div>
         </div>
 
+
         <!-- Max Output Tokens -->
-        <div class="control-card">
+        <div class="control-card tokens-card">
           <div class="slider-row">
             <label for="param-tokens" class="field-label">Max Output Tokens</label>
             <span id="tokens-val" class="slider-digital-value">2048</span>
@@ -103,19 +135,7 @@
             <span>8192</span>
           </div>
         </div>
-      </div>
 
-      <!-- Pricing Info Box -->
-      <div class="control-card pricing-card">
-        <h5>💡 Vertex AI Pricing Reference</h5>
-        <ul>
-          <li><strong>Gemini 3.5 Flash</strong>: $0.075 / 1M In | $0.30 / 1M Out</li>
-          <li><strong>Gemini 2.5 Flash</strong>: $0.075 / 1M In | $0.30 / 1M Out</li>
-          <li><strong>Gemini 2.5 Pro</strong>: $1.25 / 1M In | $5.00 / 1M Out</li>
-          <li><strong>Claude Sonnet 4-6</strong>: $3.00 / 1M In | $15.00 / 1M Out</li>
-          <li><strong>Claude Opus 4-7</strong>: $15.00 / 1M In | $75.00 / 1M Out</li>
-          <li><strong>Claude Haiku 4-5</strong>: $0.80 / 1M In | $4.00 / 1M Out</li>
-        </ul>
       </div>
 
     </aside>
@@ -166,6 +186,7 @@
                     <option value="gemini-2.5-pro">gemini-2.5-pro (Stable Pro)</option>
                     <option value="gemini-2.0-flash">gemini-2.0-flash (Deprecated)</option>
                   </select>
+                  <span id="gemini-model-price" class="model-price-tag"></span>
                 </div>
               </div>
             </div>
@@ -233,6 +254,7 @@
                     <option value="claude-haiku-4-5@20251001">claude-haiku-4-5 (Speed/Cost)</option>
                     <option value="claude-3-5-sonnet@20241022">claude-3-5-sonnet-v2 (Legacy)</option>
                   </select>
+                  <span id="claude-model-price" class="model-price-tag"></span>
                 </div>
               </div>
             </div>
@@ -288,6 +310,24 @@
       <!-- Shared Input Prompter Panel -->
       <footer class="input-panel">
         <form id="prompt-form" class="prompt-form">
+          <!-- Benchmark Datasets Quick Select -->
+          <div class="benchmarks-quick-select">
+            <div class="benchmarks-header">
+              <div class="benchmarks-title-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Standard Benchmarks</span>
+              </div>
+              <div class="benchmark-category-pills">
+                <button type="button" class="benchmark-pill active" data-benchmark="hellaswag">HellaSwag</button>
+                <button type="button" class="benchmark-pill" data-benchmark="swebench">SWE-Bench</button>
+                <button type="button" class="benchmark-pill" data-benchmark="ifeval">IFEval</button>
+              </div>
+            </div>
+            <div class="benchmark-prompts-container" id="benchmark-prompts-list">
+              <!-- Rendered dynamically by public/index.js -->
+            </div>
+          </div>
+
           <div class="prompt-input-container">
             <textarea id="prompt-input" placeholder="Type a message or challenge..." required></textarea>
             <div class="prompt-btn-group">

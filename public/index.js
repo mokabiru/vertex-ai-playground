@@ -7,15 +7,15 @@ const PRICING = {
   'gemini-1.5-flash-001': { input: 0.075, output: 0.30 },
   'gemini-1.5-pro-001': { input: 1.25, output: 5.00 },
   'gemini-2.0-flash': { input: 0.075, output: 0.30 },
-  'gemini-3.5-flash': { input: 0.075, output: 0.30 },
+  'gemini-3.5-flash': { input: 1.50, output: 9.00 },
   'gemini-3.1-flash-lite': { input: 0.0375, output: 0.15 },
-  'gemini-2.5-flash': { input: 0.075, output: 0.30 },
-  'gemini-2.5-pro': { input: 1.25, output: 5.00 },
+  'gemini-2.5-flash': { input: 0.30, output: 2.50 },
+  'gemini-2.5-pro': { input: 1.25, output: 10.00 },
   'gemini-1.5-flash': { input: 0.075, output: 0.30 },
   'gemini-1.5-pro': { input: 1.25, output: 5.00 },
   'claude-sonnet-4-6': { input: 3.00, output: 15.00 },
-  'claude-opus-4-7': { input: 15.00, output: 75.00 },
-  'claude-haiku-4-5@20251001': { input: 0.80, output: 4.00 },
+  'claude-opus-4-7': { input: 5.00, output: 25.00 },
+  'claude-haiku-4-5@20251001': { input: 1.00, output: 5.00 },
   'claude-3-5-sonnet@20241022': { input: 3.00, output: 15.00 }
 };
 
@@ -52,6 +52,8 @@ const elements = {
   promptInput: document.getElementById('prompt-input'),
   btnSubmitPrompt: document.getElementById('btn-submit-prompt'),
   btnClearArena: document.getElementById('btn-clear-arena'),
+  benchmarkPills: document.querySelectorAll('.benchmark-pill'),
+  benchmarkPromptsList: document.getElementById('benchmark-prompts-list'),
   
   // Config Modal Elements
   configDialog: document.getElementById('config-dialog'),
@@ -93,10 +95,20 @@ const elements = {
   claudeLegendInput: document.getElementById('claude-legend-input'),
   claudeLegendThinking: document.getElementById('claude-legend-thinking'),
   claudeLegendOutput: document.getElementById('claude-legend-output'),
+
+  // Gemini Thinking controls
+  geminiThinkingContainer: document.getElementById('gemini-thinking-container'),
+  geminiThinkingSelect: document.getElementById('gemini-thinking-select'),
+  geminiThinkingBadge: document.getElementById('gemini-thinking-badge'),
+  thinkingBudgetSliderWrapper: document.getElementById('thinking-budget-slider-wrapper'),
+  thinkingBudgetSlider: document.getElementById('gemini-thinking-budget'),
+  thinkingBudgetVal: document.getElementById('thinking-budget-val'),
 };
 
 // --- Active Layout State ---
 let currentLayout = 'compare'; // 'compare', 'gemini', 'claude'
+let savedUserTemperature = 1.0;
+let temperatureSliderLocked = false;
 
 // ==========================================================================
 // CREDENTIAL STORAGE AND RETRIEVAL
@@ -234,11 +246,189 @@ function showToast(message) {
 
 // Synchronize Sliders Digital Readout
 elements.tempSlider.addEventListener('input', (e) => {
+  if (!temperatureSliderLocked) {
+    savedUserTemperature = parseFloat(e.target.value);
+  }
   elements.tempVal.textContent = e.target.value;
 });
 elements.tokensSlider.addEventListener('input', (e) => {
   elements.tokensVal.textContent = e.target.value;
 });
+
+// --- Gemini Thinking Configurations ---
+function updateThinkingConfigPanel() {
+  const model = elements.geminiModelSelect.value;
+  const select = elements.geminiThinkingSelect;
+  const badge = elements.geminiThinkingBadge;
+  const sliderWrapper = elements.thinkingBudgetSliderWrapper;
+  const container = elements.geminiThinkingContainer;
+
+  if (!container || !select) return;
+
+  // Reset container state
+  container.classList.remove('disabled');
+  select.disabled = false;
+
+  // Check model capability
+  if (model.includes('gemini-3.5')) {
+    // Gemini 3.5 supports Thinking Levels
+    badge.textContent = 'G3.5 Mode';
+    badge.title = 'Gemini 3.5+ models configure thinking via levels';
+    
+    // Save previous selection if it is a level
+    const prevVal = select.value;
+    select.innerHTML = `
+      <option value="HIGH">HIGH (Deep Reasoning - Default)</option>
+      <option value="MEDIUM">MEDIUM (Balanced Speed & Logic)</option>
+      <option value="LOW">LOW (Fast, Basic Reasoning)</option>
+      <option value="MINIMAL">MINIMAL (Lowest latency/overhead)</option>
+    `;
+    
+    if (['HIGH', 'MEDIUM', 'LOW', 'MINIMAL'].includes(prevVal)) {
+      select.value = prevVal;
+    } else {
+      select.value = 'HIGH';
+    }
+    
+    sliderWrapper.style.display = 'none';
+  } else if (model.includes('gemini-2.5')) {
+    // Gemini 2.5 supports Thinking Budget
+    badge.textContent = 'G2.5 Mode';
+    badge.title = 'Gemini 2.5 models configure thinking via token budgets';
+    
+    const prevVal = select.value;
+    select.innerHTML = `
+      <option value="DYNAMIC">DYNAMIC (Auto-budget - Default)</option>
+      <option value="OFF">OFF (Disable Thinking)</option>
+      <option value="CUSTOM">CUSTOM (Define token budget slider)</option>
+    `;
+    
+    if (['DYNAMIC', 'OFF', 'CUSTOM'].includes(prevVal)) {
+      select.value = prevVal;
+    } else {
+      select.value = 'DYNAMIC';
+    }
+    
+    toggleBudgetSlider(select.value);
+  } else {
+    // Other models (e.g. gemini-2.0-flash) do not support thinking configuration
+    badge.textContent = 'Unsupported';
+    badge.title = 'This Gemini model does not support thinking configuration';
+    
+    select.innerHTML = `
+      <option value="UNSUPPORTED">Disabled for this model</option>
+    `;
+    select.value = 'UNSUPPORTED';
+    select.disabled = true;
+    container.classList.add('disabled');
+    sliderWrapper.style.display = 'none';
+  }
+}
+
+function toggleBudgetSlider(mode) {
+  const sliderWrapper = elements.thinkingBudgetSliderWrapper;
+  if (!sliderWrapper) return;
+  if (mode === 'CUSTOM') {
+    sliderWrapper.style.display = 'block';
+  } else {
+    sliderWrapper.style.display = 'none';
+  }
+}
+
+// Listen to thinking selection changes
+elements.geminiThinkingSelect.addEventListener('change', (e) => {
+  toggleBudgetSlider(e.target.value);
+});
+
+// Sync budget slider digital display
+elements.thinkingBudgetSlider.addEventListener('input', (e) => {
+  elements.thinkingBudgetVal.textContent = e.target.value;
+});
+
+// Connect to Gemini model change event
+elements.geminiModelSelect.addEventListener('change', () => {
+  updateThinkingConfigPanel();
+  updateModelPriceTags();
+});
+
+// --- Claude Thinking Temperature Dynamic UI ---
+function updateTemperatureUI() {
+  const noteEl = document.getElementById('temp-info-note');
+  const textEl = document.getElementById('temp-info-text');
+  if (!noteEl || !textEl) return;
+
+  const isClaudeThinking = (elements.claudeModelSelect.value.includes('claude-sonnet-4-6') || elements.claudeModelSelect.value.includes('claude-opus-4-7'));
+
+  if (isClaudeThinking && (currentLayout === 'claude' || currentLayout === 'compare')) {
+    noteEl.style.display = 'flex';
+    if (currentLayout === 'compare') {
+      textEl.textContent = 'Claude Thinking is active: its temperature will be auto-set to 1.0 (sampling parameters omitted). Selected temperature still applies to Gemini.';
+      
+      // If we are in split/compare layout, the temperature slider is shared and should remain enabled for Gemini
+      if (temperatureSliderLocked) {
+        elements.tempSlider.disabled = false;
+        elements.tempSlider.value = savedUserTemperature;
+        elements.tempVal.textContent = savedUserTemperature;
+        temperatureSliderLocked = false;
+      }
+    } else {
+      textEl.textContent = 'Claude Thinking is active: temperature is auto-set to 1.0 (sampling parameters omitted) to prevent API errors.';
+      
+      // In single Claude layout, we can lock/disable the slider and auto-set it to 1.0 to show it is auto-managed
+      if (!temperatureSliderLocked) {
+        savedUserTemperature = parseFloat(elements.tempSlider.value);
+        temperatureSliderLocked = true;
+      }
+      elements.tempSlider.value = 1.0;
+      elements.tempVal.textContent = '1.0 (OMITTED)';
+      elements.tempSlider.disabled = true;
+    }
+  } else {
+    noteEl.style.display = 'none';
+    
+    // Unlock and restore previous temperature
+    if (temperatureSliderLocked) {
+      elements.tempSlider.disabled = false;
+      elements.tempSlider.value = savedUserTemperature;
+      elements.tempVal.textContent = savedUserTemperature;
+      temperatureSliderLocked = false;
+    }
+  }
+}
+
+// Dynamic Model Pricing UI Update
+function updateModelPriceTags() {
+  const geminiModel = elements.geminiModelSelect.value;
+  const claudeModel = elements.claudeModelSelect.value;
+
+  const geminiPriceEl = document.getElementById('gemini-model-price');
+  const claudePriceEl = document.getElementById('claude-model-price');
+
+  if (geminiPriceEl) {
+    const rate = PRICING[geminiModel];
+    if (rate) {
+      geminiPriceEl.innerHTML = `In: <strong>$${rate.input.toFixed(2)}</strong>/1M &nbsp;|&nbsp; Out: <strong>$${rate.output.toFixed(2)}</strong>/1M`;
+    } else {
+      geminiPriceEl.innerHTML = 'Rates unlisted';
+    }
+  }
+
+  if (claudePriceEl) {
+    const rate = PRICING[claudeModel];
+    if (rate) {
+      claudePriceEl.innerHTML = `In: <strong>$${rate.input.toFixed(2)}</strong>/1M &nbsp;|&nbsp; Out: <strong>$${rate.output.toFixed(2)}</strong>/1M`;
+    } else {
+      claudePriceEl.innerHTML = 'Rates unlisted';
+    }
+  }
+}
+
+// Connect to Claude model change event
+elements.claudeModelSelect.addEventListener('change', () => {
+  updateTemperatureUI();
+  updateModelPriceTags();
+});
+
 
 // Sandbox Switch Toggle Status Updates
 elements.sandboxCheckbox.addEventListener('change', (e) => {
@@ -310,6 +500,7 @@ function updateLayoutUI(layout) {
     elements.tabClaude.classList.add('active');
     elements.arenaGrid.classList.add('single-claude-layout');
   }
+  updateTemperatureUI();
 }
 elements.tabCompare.addEventListener('click', () => updateLayoutUI('compare'));
 elements.tabGemini.addEventListener('click', () => updateLayoutUI('gemini'));
@@ -433,6 +624,7 @@ async function streamModel(provider, prompt) {
   let outputText = '';
   let thinkingTokens = 0;
   let outputTokens = 0;
+  const estimatedInputTokens = Math.ceil((prompt.length + sysPrompt.length) / 4);
   let actualInputTokens = estimatedInputTokens;
 
   // Reset readings
@@ -513,7 +705,11 @@ async function streamModel(provider, prompt) {
         temperature: temp,
         maxTokens: maxTokens,
         sandboxMode: isSandbox,
-        config: config
+        config: config,
+        geminiThinking: {
+          mode: elements.geminiThinkingSelect ? elements.geminiThinkingSelect.value : 'HIGH',
+          budget: elements.thinkingBudgetSlider ? parseInt(elements.thinkingBudgetSlider.value) : 1024
+        }
       })
     });
 
@@ -724,8 +920,176 @@ async function loadServerConfig() {
   }
 }
 
+// --- Benchmark Datasets / Prompts ---
+const BENCHMARK_DATA = {
+  hellaswag: [
+    {
+      title: "Wood Stain Prep",
+      preview: "What is the most logical next step after sanding a wooden board...",
+      prompt: "A person is preparing to stain a piece of wood. They have sanded the board down to a smooth finish and wiped away all the dust. They have the wood, the can of stain, and a brush. What is the most logical next physical action they should take to ensure an even stain application?"
+    },
+    {
+      title: "Whipping Cream",
+      preview: "Whipping heavy cream by hand in a cold metal bowl...",
+      prompt: "A person is making whipped cream by hand. They pour heavy whipping cream into a metal bowl that has been pre-chilled in the freezer. What is the most logical next step to whip the cream effectively to stiff peaks?"
+    },
+    {
+      title: "Tomato Gardener",
+      preview: "Watering and nurturing newly sprouted tomato seeds in rich soil...",
+      prompt: "A gardener wants to grow healthy tomato plants. They have planted seeds in rich soil inside individual starter pots and watered them thoroughly. What is the most logical next sequence of physical actions to ensure successful germination and seedling growth?"
+    },
+    {
+      title: "Flat Tire Replacement",
+      preview: "Retrieving spare parts and logical jack placement on roadside...",
+      prompt: "A driver pulls over on the highway with a flat tire. They open the trunk, take out the spare tire, the jack, and the lug wrench. Before raising the vehicle with the jack, what is the most logical next physical safety action they must perform?"
+    },
+    {
+      title: "Drip Coffee Making",
+      preview: "Prepping filter basket and water reservoir sequentially...",
+      prompt: "A person wants to make fresh drip coffee in a standard coffee maker. They have placed a paper filter into the basket and added ground coffee. What is the most logical next physical action to complete the preparation before turning the machine on?"
+    },
+    {
+      title: "Hanging a Painting",
+      preview: "Locating wall studs and inserting heavy nail anchor safely...",
+      prompt: "A person wants to hang a heavy framed painting on drywalled wood studs. They have selected the wall spot, located a wooden wall stud using a stud finder, and have a hammer and a sturdy nail. What is the most logical next physical action to secure the painting safely?"
+    }
+  ],
+  swebench: [
+    {
+      title: "Relative Imports",
+      preview: "Resolve sibling package ModuleNotFoundError in a python project structure...",
+      prompt: "Debug a relative import issue in a Python project where importing from a sibling package fails with 'ModuleNotFoundError: No module named...'. Show the standard directory structure and how to structure the __init__.py files or run command to resolve it correctly."
+    },
+    {
+      title: "Memory Leak",
+      preview: "Analyze and repair a memory leak in a Node.js stream caching system...",
+      prompt: "Analyze and fix a memory leak in a Node.js custom stream pipeline. The pipeline uses circular buffers for caching chunks but fails to release references properly, causing Heap Out Of Memory. Show the implementation of a memory-efficient circular buffer class."
+    },
+    {
+      title: "Dependency Cycles",
+      preview: "Algorithm to detect cyclic dependencies in package managers...",
+      prompt: "Write a high-performance algorithm in JavaScript to detect cyclic dependencies in a large-scale software package management system. Given a list of packages and their dependencies, find and output all circular dependency paths using a depth-first search (DFS) with node coloring."
+    },
+    {
+      title: "SQL Optimization",
+      preview: "Analyze and optimize a multi-join query with GROUP BY on 10M rows...",
+      prompt: "Analyze and optimize a slow PostgreSQL query containing multiple JOINs, a GROUP BY, and a subquery. The query takes over 5 seconds on a table of 10M rows. Explain the index strategy and how to rewrite it using proper CTEs or window functions."
+    },
+    {
+      title: "React Hydration Fail",
+      preview: "Debug and repair client-server markup mismatch in Next.js SSR...",
+      prompt: "Debug a Next.js / React SSR mismatch error where the client outputs 'Hydration failed because the initial UI does not match what was rendered on the server'. Show the exact patterns (such as dynamic date/time or window size references) causing the bug and how to fix them."
+    },
+    {
+      title: "Express Race Condition",
+      preview: "Implement OCC in MongoDB to safeguard wallet balance in parallel requests...",
+      prompt: "Identify and resolve a race condition in a high-concurrency Node.js Express endpoint that increments a user's wallet balance in MongoDB. Show the database transaction implementation using optimistic concurrency control (OCC) with version attributes."
+    }
+  ],
+  ifeval: [
+    {
+      title: "Renewable Energy",
+      preview: "Evaluate renewable energy in three paragraphs, omitting 'e' in the third...",
+      prompt: "Write a three-paragraph evaluation comparing solar and wind energy. Each paragraph must be exactly 3 sentences long. In the third paragraph, you are completely prohibited from using the letter 'e' anywhere in any of the words."
+    },
+    {
+      title: "AI Synergy Pitch",
+      preview: "150-word synergistic AI pitch with exactly 3 bullets...",
+      prompt: "Write a pitch about 'AI Synergy Platforms' that is exactly 150 words long. The pitch must contain exactly 3 bullet points, each starting with an action verb, and must conclude with a single sentence call to action."
+    },
+    {
+      title: "Quantum Explanation",
+      preview: "Explain quantum computing without forbidden terms like 'physics'...",
+      prompt: "Explain the concept of quantum computing to a high school student in exactly two paragraphs. You are strictly forbidden from using any of the following words anywhere in your explanation: 'physics', 'mechanics', 'computer', 'science', 'math'."
+    },
+    {
+      title: "Public-Key Cryptography",
+      preview: "Explain cryptography without using the words 'key' or 'lock'...",
+      prompt: "Write an email draft describing public-key cryptography to a colleague. The email must contain exactly two bullet points, use at least 3 uppercase acronyms (e.g. RSA, SSL), and must NOT use the words 'key' or 'lock' anywhere in the message."
+    },
+    {
+      title: "Paris Itinerary",
+      preview: "3-day travel itinerary with exact word count and sentence rules...",
+      prompt: "Create a 3-day travel itinerary for Paris. Each day must be summarized in exactly one paragraph. The word count of the entire response must be between 180 and 220 words. No sentence in the entire response can start with the letter 'P' or 'T'."
+    },
+    {
+      title: "Python Spec Code",
+      preview: "Write clean dictionary-merging function with strict docstring constraints...",
+      prompt: "Write a Python function to merge two dictionaries. The entire response must be written in a single code block. The code must include a docstring that contains the word 'antigravity' at least twice, and must not contain any inline comments (starting with #)."
+    }
+  ]
+};
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function renderBenchmarkPrompts(category) {
+  if (!elements.benchmarkPromptsList) return;
+  elements.benchmarkPromptsList.innerHTML = '';
+  
+  const prompts = BENCHMARK_DATA[category] || [];
+  prompts.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'benchmark-prompt-card';
+    card.setAttribute('data-prompt', p.prompt);
+    
+    card.innerHTML = `
+      <div class="benchmark-prompt-title">${escapeHtml(p.title)}</div>
+      <div class="benchmark-prompt-preview">${escapeHtml(p.preview)}</div>
+    `;
+    
+    card.addEventListener('click', () => {
+      elements.promptInput.value = p.prompt;
+      
+      // Auto-resize the textarea
+      elements.promptInput.dispatchEvent(new Event('input'));
+      elements.promptInput.focus();
+      
+      // Tactile visual feedback (pulse glow)
+      elements.promptInput.classList.remove('pulse-highlight');
+      // Trigger reflow to restart animation
+      void elements.promptInput.offsetWidth;
+      elements.promptInput.classList.add('pulse-highlight');
+      
+      setTimeout(() => {
+        elements.promptInput.classList.remove('pulse-highlight');
+      }, 800);
+    });
+    
+    elements.benchmarkPromptsList.appendChild(card);
+  });
+}
+
+function initBenchmarks() {
+  if (!elements.benchmarkPills) return;
+  
+  elements.benchmarkPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      elements.benchmarkPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      
+      const category = pill.getAttribute('data-benchmark');
+      renderBenchmarkPrompts(category);
+    });
+  });
+  
+  // Render default benchmark on load
+  renderBenchmarkPrompts('hellaswag');
+}
+
 window.addEventListener('load', async () => {
   loadSavedCredentials();
   await loadServerConfig();
+  updateThinkingConfigPanel();
+  updateTemperatureUI();
+  updateModelPriceTags();
+  initBenchmarks();
 });
+
 

@@ -175,6 +175,8 @@ function handleSandboxStream(reqData, res) {
   const projectId = reqData.config?.projectId || 'YOUR_PROJECT_ID';
   const simulatedHost = region === 'global' ? 'aiplatform.googleapis.com' : `${region}-aiplatform.googleapis.com`;
 
+  const isClaudeThinking = reqData.provider === 'claude' && (model.includes('claude-sonnet-4-6') || model.includes('claude-opus-4-7'));
+
   // Let's create a rich, structured markdown response explaining how the app acts
   const paragraphs = [
     `### 🧪 Sandbox Mode Simulation\n\nThis is a real-time streamed response simulating **${provider}** (${model}) on Google Cloud Vertex AI.\n\n`,
@@ -189,7 +191,9 @@ function handleSandboxStream(reqData, res) {
     `\`\`\`http\nAuthorization: Bearer ya29.c.Ko0BvQ...[Generated Access Token]\nContent-Type: application/json\n\`\`\`\n\n`,
     `#### 3. Standardized Payload Structure\n`,
     reqData.provider === 'claude'
-      ? `The payload follows the official Anthropic Messages API but enforces the Vertex-specific version parameter:\n\`\`\`json\n{\n  "anthropic_version": "vertex-2023-10-16",\n  "max_tokens": ${reqData.maxTokens || 1024},\n  "messages": [\n    { "role": "user", "content": "${prompt.replace(/"/g, '\\"')}" }\n  ],\n  "temperature": ${temp}\n}\n\`\`\`\n\n`
+      ? (isClaudeThinking
+         ? `The payload follows the official Anthropic Messages API but enforces the Vertex-specific version parameter and automatically omits the temperature parameter to prevent API errors because Claude Thinking is enabled:\n\`\`\`json\n{\n  "anthropic_version": "vertex-2023-10-16",\n  "max_tokens": ${reqData.maxTokens || 1024},\n  "messages": [\n    { "role": "user", "content": "${prompt.replace(/"/g, '\\"')}" }\n  ],\n  "thinking": {\n    "type": "adaptive"\n  },\n  "output_config": {\n    "effort": "high"\n  }\n}\n\`\`\`\n\n`
+         : `The payload follows the official Anthropic Messages API but enforces the Vertex-specific version parameter:\n\`\`\`json\n{\n  "anthropic_version": "vertex-2023-10-16",\n  "max_tokens": ${reqData.maxTokens || 1024},\n  "messages": [\n    { "role": "user", "content": "${prompt.replace(/"/g, '\\"')}" }\n  ],\n  "temperature": ${temp}\n}\n\`\`\`\n\n`)
       : `The Gemini payload formats content as role-based parts arrays:\n\`\`\`json\n{\n  "contents": [\n    {\n      "role": "user",\n      "parts": [{ "text": "${prompt.replace(/"/g, '\\"')}" }]\n    }\n  ],\n  "generationConfig": {\n    "temperature": ${temp},\n    "maxOutputTokens": ${reqData.maxTokens || 1024}\n  }\n}\n\`\`\`\n\n`,
     `#### 4. Model Capabilities Overview\n`,
     reqData.provider === 'claude'
@@ -198,13 +202,55 @@ function handleSandboxStream(reqData, res) {
     `*Note: Once you exit Sandbox Mode and provide actual GCP credentials in the settings panel, these exact REST endpoints and payloads will be activated securely through this backend proxy!*`
   ];
 
-  const simulatedThoughts = [
+  let simulatedThoughts = [
     `Analyzing prompt string: "${prompt.substring(0, 45)}${prompt.length > 45 ? '...' : ''}"\n`,
     `Detecting routing metrics and query intent for Provider [${reqData.provider.toUpperCase()}] and Model [${model}]...\n`,
     `Checking credentials cache and simulating active secure OAuth token generation...\n`,
-    `Formulating generation parameters: temperature=${temp}, maxTokens=${reqData.maxTokens || 1024}\n`,
+    `Formulating generation parameters: temperature=${isClaudeThinking ? 'OMITTED (Thinking Mode)' : temp}, maxTokens=${reqData.maxTokens || 1024}\n`,
     `Preparing beautiful educational roadmap response blueprint...\n`
   ];
+
+  // Dynamically tailor thoughts in Sandbox Mode to reflect selected thinking level/budget
+  if (reqData.provider === 'gemini') {
+    const clientThinking = reqData.geminiThinking || {};
+    const selectedMode = clientThinking.mode || 'HIGH';
+    
+    if (selectedMode === 'OFF' || selectedMode === 'UNSUPPORTED') {
+      simulatedThoughts = [];
+    } else if (selectedMode === 'MINIMAL') {
+      simulatedThoughts = [
+        `[MINIMAL MODE] Bypassing extensive reasoning. Preparing immediate answer layout...\n`
+      ];
+    } else if (selectedMode === 'LOW') {
+      simulatedThoughts = [
+        `[LOW MODE] Analyzing query context for Prompt: "${prompt.substring(0, 30)}..."\n`,
+        `[LOW MODE] Aligning lightweight generation parameters and routing matrices...\n`
+      ];
+    } else if (selectedMode === 'MEDIUM') {
+      simulatedThoughts = [
+        `[MEDIUM MODE] Processing query string input and parsing prompt semantic intention...\n`,
+        `[MEDIUM MODE] Resolving region locations list and authenticating secure session routing...\n`,
+        `[MEDIUM MODE] Assembling standard API parameters and preparing structure blueprints...\n`
+      ];
+    } else if (selectedMode === 'DYNAMIC' || selectedMode === 'HIGH' || selectedMode === 'CUSTOM') {
+      const budgetLabel = selectedMode === 'CUSTOM' ? `CUSTOM BUDGET: ${clientThinking.budget || 1024} tokens` : `${selectedMode} MODE`;
+      simulatedThoughts = [
+        `[${budgetLabel}] Initiating deep semantic parse of user prompt: "${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}"\n`,
+        `[${budgetLabel}] Resolving Vertex AI endpoint routing matrix to maximize response execution speed...\n`,
+        `[${budgetLabel}] Accessing local server SA credential store and conducting OAuth key verification...\n`,
+        `[${budgetLabel}] Constructing optimized API generationConfig body: temperature=${temp}, maxTokens=${reqData.maxTokens || 1024}...\n`,
+        `[${budgetLabel}] Simulating reasoning cycles to establish structured response hierarchy...\n`,
+        `[${budgetLabel}] Generating educational walkthrough elements and preparing the streamed output...\n`
+      ];
+    }
+  } else if (isClaudeThinking) {
+    simulatedThoughts = [
+      `[CLAUDE THINKING MODE] Initiating Claude adaptive thinking with high effort level...\n`,
+      `[CLAUDE THINKING MODE] Constructing REST payload: temperature parameter is automatically omitted to allow Claude Thinking...\n`,
+      `[CLAUDE THINKING MODE] Performing deep hierarchical prompt analysis and multi-step reasoning...\n`,
+      `[CLAUDE THINKING MODE] Generating logical trace logs for Claude's intermediate thought process...\n`
+    ];
+  }
 
   const events = [];
   for (const thought of simulatedThoughts) {
@@ -395,11 +441,41 @@ const server = http.createServer(async (req, res) => {
               };
             }
 
-            // Enable thinking/thoughts config for Gemini 2.5 and newer models
+            // Enable thinking/thoughts config for Gemini 2.5 and newer models based on client choices
             if (reqData.model.includes('gemini-2.5') || reqData.model.includes('gemini-3.5')) {
-              payload.generationConfig.thinkingConfig = {
-                includeThoughts: true
-              };
+              const clientThinking = reqData.geminiThinking || {};
+              const selectedMode = clientThinking.mode || 'HIGH';
+              
+              if (reqData.model.includes('gemini-3.5')) {
+                // Gemini 3.5+ uses thinkingLevel (MINIMAL, LOW, MEDIUM, HIGH)
+                let level = 'HIGH';
+                if (['HIGH', 'MEDIUM', 'LOW', 'MINIMAL'].includes(selectedMode)) {
+                  level = selectedMode;
+                }
+                
+                payload.generationConfig.thinkingConfig = {
+                  includeThoughts: true,
+                  thinkingLevel: level
+                };
+              } else if (reqData.model.includes('gemini-2.5')) {
+                // Gemini 2.5 uses thinkingBudget (-1, 0, or custom integer)
+                let budget = -1; // Default dynamic auto-budget
+                
+                if (selectedMode === 'OFF') {
+                  budget = 0;
+                } else if (selectedMode === 'CUSTOM') {
+                  budget = typeof clientThinking.budget === 'number' ? clientThinking.budget : 1024;
+                }
+                
+                payload.generationConfig.thinkingConfig = {
+                  includeThoughts: true,
+                  thinkingBudget: budget
+                };
+              } else {
+                payload.generationConfig.thinkingConfig = {
+                  includeThoughts: true
+                };
+              }
             }
           } else {
             // Anthropic Claude
@@ -422,12 +498,17 @@ const server = http.createServer(async (req, res) => {
               payload.system_prompt = reqData.systemPrompt;
             }
 
-            // Enable extended thinking for Claude Sonnet 4-6 and Opus 4-7 models
+            // Enable adaptive thinking for Claude Sonnet 4-6 and Opus 4-7 models
             if (reqData.model.includes('claude-sonnet-4-6') || reqData.model.includes('claude-opus-4-7')) {
               payload.thinking = {
-                type: 'enabled',
-                budget_tokens: Math.min(1024, Math.floor((reqData.maxTokens || 2048) * 0.8))
+                type: 'adaptive'
               };
+              payload.output_config = {
+                effort: 'high'
+              };
+              // Temperature is incompatible with Claude Thinking Mode.
+              // To prevent 400 API validation errors, we omit it entirely from the payload.
+              delete payload.temperature;
             }
           }
 
