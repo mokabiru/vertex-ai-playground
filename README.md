@@ -76,13 +76,16 @@ This method allows the local server to sign assertions and obtain/refresh tokens
 
 ## 📊 Supported Models & Pricing Reference
 
-| Provider | Model ID | Input Rate (per 1M) | Output Rate (per 1M) |
-| :--- | :--- | :--- | :--- |
-| **Google** | `gemini-2.0-flash-exp` | $0.075 | $0.30 |
-| **Google** | `gemini-1.5-flash-001` | $0.075 | $0.30 |
-| **Google** | `gemini-1.5-pro-001` | $1.25 | $5.00 |
-| **Anthropic** | `claude-3-5-sonnet-v2` | $3.00 | $15.00 |
-| **Anthropic** | `claude-3-5-haiku` | $0.80 | $4.00 |
-| **Anthropic** | `claude-3-opus` | $15.00 | $75.00 |
+| Provider | Model ID | Input Rate (per 1M) | Output Rate (per 1M) | Notes / Capability |
+| :--- | :--- | :--- | :--- | :--- |
+| **Google** | `gemini-3.5-flash` | $1.50 | $9.00 | Latest Stable Default, Level Thinking Config |
+| **Google** | `gemini-2.5-flash` | $0.30 | $2.50 | Stable Flash, Token Budget Thinking |
+| **Google** | `gemini-2.5-pro` | $1.25 | $10.00 | Stable Pro, Token Budget Thinking |
+| **Google** | `gemini-2.0-flash` | $0.075 | $0.30 | Deprecated, Legacy Generation |
+| **Anthropic** | `claude-sonnet-4-6` | $3.00 | $15.00 | Latest Sonnet, Adaptive Thinking |
+| **Anthropic** | `claude-opus-4-7` | $5.00 | $25.00 | Latest Opus, Adaptive Thinking |
+| **Anthropic** | `claude-haiku-4-5@20251001` | $1.00 | $5.00 | Speed/Cost Optimizations |
+| **Anthropic** | `claude-3-5-sonnet@20241022` | $3.00 | $15.00 | Legacy Sonnet v2 |
 
 *Costs are calculated dynamically on the fly based on these rate specifications as tokens stream down.*
+
