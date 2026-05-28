@@ -4,6 +4,8 @@ A sleek, premium, and zero-dependency local web playground designed to let you i
 
 It runs on a local lightweight Node server using native Mac capabilities without requiring an `npm install` or any package configuration.
 
+![Agent Platform Playground - Gemini & Claude Arena](playground_screenshot.png)
+
 ---
 
 ## 🎨 Key Features
