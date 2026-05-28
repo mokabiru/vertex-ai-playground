@@ -24,7 +24,7 @@ It runs on a local lightweight Node server using native Mac capabilities without
 
 1. Open your terminal in this directory:
    ```bash
-   cd /Users/mokabir/.gemini/antigravity/scratch/vertex-ai-playground
+   cd vertex-ai-playground
    ```
 
 2. Run the server using your native Antigravity Node helper:
