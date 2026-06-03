@@ -442,12 +442,12 @@ const server = http.createServer(async (req, res) => {
             }
 
             // Enable thinking/thoughts config for Gemini 2.5 and newer models based on client choices
-            if (reqData.model.includes('gemini-2.5') || reqData.model.includes('gemini-3.5')) {
+            if (reqData.model.includes('gemini-2.5') || reqData.model.includes('gemini-3.5') || reqData.model.includes('gemini-3.0')) {
               const clientThinking = reqData.geminiThinking || {};
               const selectedMode = clientThinking.mode || 'HIGH';
               
-              if (reqData.model.includes('gemini-3.5')) {
-                // Gemini 3.5+ uses thinkingLevel (MINIMAL, LOW, MEDIUM, HIGH)
+              if (reqData.model.includes('gemini-3.5') || reqData.model.includes('gemini-3.0')) {
+                // Gemini 3.0 / 3.5+ uses thinkingLevel (MINIMAL, LOW, MEDIUM, HIGH)
                 let level = 'HIGH';
                 if (['HIGH', 'MEDIUM', 'LOW', 'MINIMAL'].includes(selectedMode)) {
                   level = selectedMode;

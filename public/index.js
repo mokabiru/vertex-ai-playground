@@ -8,6 +8,7 @@ const PRICING = {
   'gemini-1.5-pro-001': { input: 1.25, output: 5.00 },
   'gemini-2.0-flash': { input: 0.075, output: 0.30 },
   'gemini-3.5-flash': { input: 1.50, output: 9.00 },
+  'gemini-3.0-flash': { input: 0.075, output: 0.30 },
   'gemini-3.1-flash-lite': { input: 0.0375, output: 0.15 },
   'gemini-2.5-flash': { input: 0.30, output: 2.50 },
   'gemini-2.5-pro': { input: 1.25, output: 10.00 },
@@ -38,6 +39,10 @@ const elements = {
   tabGemini: document.getElementById('tab-gemini'),
   tabClaude: document.getElementById('tab-claude'),
   arenaGrid: document.getElementById('arena-grid'),
+  
+  // Provider Selectors
+  paneAProviderSelect: document.getElementById('pane-a-provider-select'),
+  paneBProviderSelect: document.getElementById('pane-b-provider-select'),
   
   // Model Selectors
   geminiModelSelect: document.getElementById('gemini-model-select'),
@@ -103,6 +108,14 @@ const elements = {
   thinkingBudgetSliderWrapper: document.getElementById('thinking-budget-slider-wrapper'),
   thinkingBudgetSlider: document.getElementById('gemini-thinking-budget'),
   thinkingBudgetVal: document.getElementById('thinking-budget-val'),
+
+  // Claude Thinking controls (symmetrical)
+  claudeThinkingContainer: document.getElementById('claude-thinking-container'),
+  claudeThinkingSelect: document.getElementById('claude-thinking-select'),
+  claudeThinkingBadge: document.getElementById('claude-thinking-badge'),
+  claudeThinkingBudgetSliderWrapper: document.getElementById('claude-thinking-budget-slider-wrapper'),
+  claudeThinkingBudgetSlider: document.getElementById('claude-thinking-budget'),
+  claudeThinkingBudgetVal: document.getElementById('claude-thinking-budget-val'),
 };
 
 // --- Active Layout State ---
@@ -255,13 +268,99 @@ elements.tokensSlider.addEventListener('input', (e) => {
   elements.tokensVal.textContent = e.target.value;
 });
 
-// --- Gemini Thinking Configurations ---
-function updateThinkingConfigPanel() {
-  const model = elements.geminiModelSelect.value;
-  const select = elements.geminiThinkingSelect;
-  const badge = elements.geminiThinkingBadge;
-  const sliderWrapper = elements.thinkingBudgetSliderWrapper;
-  const container = elements.geminiThinkingContainer;
+// --- PROVIDER MODELS CONFIG ---
+const PROVIDER_MODELS = {
+  gemini: [
+    { value: 'gemini-3.5-flash', text: 'gemini-3.5-flash (Latest Stable Default)' },
+    { value: 'gemini-3.0-flash', text: 'gemini-3.0-flash (Gemini 3 Flash Preview)' },
+    { value: 'gemini-2.5-flash', text: 'gemini-2.5-flash (Stable Flash)' },
+    { value: 'gemini-2.5-pro', text: 'gemini-2.5-pro (Stable Pro)' },
+    { value: 'gemini-2.0-flash', text: 'gemini-2.0-flash (Deprecated)' }
+  ],
+  claude: [
+    { value: 'claude-sonnet-4-6', text: 'claude-sonnet-4-6 (Latest Sonnet)' },
+    { value: 'claude-opus-4-7', text: 'claude-opus-4-7 (Latest Opus)' },
+    { value: 'claude-haiku-4-5@20251001', text: 'claude-haiku-4-5 (Speed/Cost)' },
+    { value: 'claude-3-5-sonnet@20241022', text: 'claude-3-5-sonnet-v2 (Legacy)' }
+  ]
+};
+
+// Populate models dropdown dynamically based on chosen provider
+function populateModels(panel) {
+  const providerSelect = panel === 'a' ? elements.paneAProviderSelect : elements.paneBProviderSelect;
+  const modelSelect = panel === 'a' ? elements.geminiModelSelect : elements.claudeModelSelect;
+  const provider = providerSelect.value;
+  
+  const prevVal = modelSelect.value;
+  modelSelect.innerHTML = '';
+  
+  const models = PROVIDER_MODELS[provider] || [];
+  models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.value;
+    opt.textContent = m.text;
+    modelSelect.appendChild(opt);
+  });
+  
+  // Restore previous selection if valid, otherwise default to first
+  const hasPrev = Array.from(modelSelect.options).some(opt => opt.value === prevVal);
+  if (hasPrev) {
+    modelSelect.value = prevVal;
+  } else {
+    modelSelect.selectedIndex = 0;
+  }
+}
+
+// Update pane header themes (logos, styles, backgrounds) based on active provider
+function updatePanelTheme(panel) {
+  const providerSelect = panel === 'a' ? elements.paneAProviderSelect : elements.paneBProviderSelect;
+  const provider = providerSelect.value;
+  
+  const articleEl = panel === 'a' ? document.getElementById('pane-gemini') : document.getElementById('pane-claude');
+  
+  // Toggle branding classes
+  if (provider === 'gemini') {
+    articleEl.classList.remove('model-pane-claude');
+    articleEl.classList.add('model-pane-gemini');
+    articleEl.querySelector('.gemini-logo').style.display = 'block';
+    articleEl.querySelector('.claude-logo').style.display = 'none';
+  } else {
+    articleEl.classList.remove('model-pane-gemini');
+    articleEl.classList.add('model-pane-claude');
+    articleEl.querySelector('.gemini-logo').style.display = 'none';
+    articleEl.querySelector('.claude-logo').style.display = 'block';
+  }
+  
+  // Update Tab details
+  updateTabLabels();
+}
+
+function updateTabLabels() {
+  const provA = elements.paneAProviderSelect.value;
+  const modelA = elements.geminiModelSelect.value;
+  document.getElementById('tab-a-label').textContent = `Panel A (${modelA})`;
+  const indA = document.getElementById('tab-a-indicator');
+  indA.className = provA === 'gemini' ? 'model-color-indicator gemini-glow-small' : 'model-color-indicator claude-glow-small';
+
+  const provB = elements.paneBProviderSelect.value;
+  const modelB = elements.claudeModelSelect.value;
+  document.getElementById('tab-b-label').textContent = `Panel B (${modelB})`;
+  const indB = document.getElementById('tab-b-indicator');
+  indB.className = provB === 'gemini' ? 'model-color-indicator gemini-glow-small' : 'model-color-indicator claude-glow-small';
+}
+
+// Symmetrical Thinking Configuration Updates
+function updateThinkingConfigPanel(panel) {
+  const providerSelect = panel === 'a' ? elements.paneAProviderSelect : elements.paneBProviderSelect;
+  const provider = providerSelect.value;
+  
+  const modelSelect = panel === 'a' ? elements.geminiModelSelect : elements.claudeModelSelect;
+  const model = modelSelect.value;
+  
+  const select = panel === 'a' ? elements.geminiThinkingSelect : elements.claudeThinkingSelect;
+  const badge = panel === 'a' ? elements.geminiThinkingBadge : elements.claudeThinkingBadge;
+  const sliderWrapper = panel === 'a' ? elements.thinkingBudgetSliderWrapper : elements.claudeThinkingBudgetSliderWrapper;
+  const container = panel === 'a' ? elements.geminiThinkingContainer : elements.claudeThinkingContainer;
 
   if (!container || !select) return;
 
@@ -269,13 +368,33 @@ function updateThinkingConfigPanel() {
   container.classList.remove('disabled');
   select.disabled = false;
 
-  // Check model capability
-  if (model.includes('gemini-3.5')) {
-    // Gemini 3.5 supports Thinking Levels
-    badge.textContent = 'G3.5 Mode';
-    badge.title = 'Gemini 3.5+ models configure thinking via levels';
+  if (provider === 'claude') {
+    // Claude models handle thinking via adaptive parameter inside stream call.
+    badge.textContent = 'Claude Mode';
+    badge.title = 'Claude thinking configuration is handled dynamically based on model name';
     
-    // Save previous selection if it is a level
+    select.innerHTML = `<option value="ADAPTIVE">Adaptive (Effort High)</option>`;
+    select.value = 'ADAPTIVE';
+    select.disabled = true;
+    
+    if (model.includes('claude-sonnet-4-6') || model.includes('claude-opus-4-7')) {
+      container.style.display = 'inline-flex';
+      container.classList.add('disabled');
+    } else {
+      container.style.display = 'none';
+    }
+    
+    sliderWrapper.style.display = 'none';
+    return;
+  }
+
+  // Gemini logic
+  container.style.display = 'inline-flex';
+  
+  if (model.includes('gemini-3.5') || model.includes('gemini-3.0')) {
+    badge.textContent = 'G3 Mode';
+    badge.title = 'Gemini 3.0/3.5+ models configure thinking via levels';
+    
     const prevVal = select.value;
     select.innerHTML = `
       <option value="HIGH">HIGH (Deep Reasoning - Default)</option>
@@ -292,7 +411,6 @@ function updateThinkingConfigPanel() {
     
     sliderWrapper.style.display = 'none';
   } else if (model.includes('gemini-2.5')) {
-    // Gemini 2.5 supports Thinking Budget
     badge.textContent = 'G2.5 Mode';
     badge.title = 'Gemini 2.5 models configure thinking via token budgets';
     
@@ -309,9 +427,8 @@ function updateThinkingConfigPanel() {
       select.value = 'DYNAMIC';
     }
     
-    toggleBudgetSlider(select.value);
+    toggleBudgetSlider(panel, select.value);
   } else {
-    // Other models (e.g. gemini-2.0-flash) do not support thinking configuration
     badge.textContent = 'Unsupported';
     badge.title = 'This Gemini model does not support thinking configuration';
     
@@ -325,8 +442,8 @@ function updateThinkingConfigPanel() {
   }
 }
 
-function toggleBudgetSlider(mode) {
-  const sliderWrapper = elements.thinkingBudgetSliderWrapper;
+function toggleBudgetSlider(panel, mode) {
+  const sliderWrapper = panel === 'a' ? elements.thinkingBudgetSliderWrapper : elements.claudeThinkingBudgetSliderWrapper;
   if (!sliderWrapper) return;
   if (mode === 'CUSTOM') {
     sliderWrapper.style.display = 'block';
@@ -337,17 +454,48 @@ function toggleBudgetSlider(mode) {
 
 // Listen to thinking selection changes
 elements.geminiThinkingSelect.addEventListener('change', (e) => {
-  toggleBudgetSlider(e.target.value);
+  toggleBudgetSlider('a', e.target.value);
+});
+elements.claudeThinkingSelect.addEventListener('change', (e) => {
+  toggleBudgetSlider('b', e.target.value);
 });
 
 // Sync budget slider digital display
 elements.thinkingBudgetSlider.addEventListener('input', (e) => {
   elements.thinkingBudgetVal.textContent = e.target.value;
 });
+if (elements.claudeThinkingBudgetSlider) {
+  elements.claudeThinkingBudgetSlider.addEventListener('input', (e) => {
+    elements.claudeThinkingBudgetVal.textContent = e.target.value;
+  });
+}
 
-// Connect to Gemini model change event
+// Connect to model change events
 elements.geminiModelSelect.addEventListener('change', () => {
-  updateThinkingConfigPanel();
+  updateThinkingConfigPanel('a');
+  updateModelPriceTags();
+  updateTabLabels();
+});
+elements.claudeModelSelect.addEventListener('change', () => {
+  updateThinkingConfigPanel('b');
+  updateTemperatureUI();
+  updateModelPriceTags();
+  updateTabLabels();
+});
+
+// Connect to provider change events
+elements.paneAProviderSelect.addEventListener('change', () => {
+  populateModels('a');
+  updatePanelTheme('a');
+  updateThinkingConfigPanel('a');
+  updateTemperatureUI();
+  updateModelPriceTags();
+});
+elements.paneBProviderSelect.addEventListener('change', () => {
+  populateModels('b');
+  updatePanelTheme('b');
+  updateThinkingConfigPanel('b');
+  updateTemperatureUI();
   updateModelPriceTags();
 });
 
@@ -357,14 +505,15 @@ function updateTemperatureUI() {
   const textEl = document.getElementById('temp-info-text');
   if (!noteEl || !textEl) return;
 
-  const isClaudeThinking = (elements.claudeModelSelect.value.includes('claude-sonnet-4-6') || elements.claudeModelSelect.value.includes('claude-opus-4-7'));
+  const isAClaudeThinking = elements.paneAProviderSelect.value === 'claude' && (elements.geminiModelSelect.value.includes('claude-sonnet-4-6') || elements.geminiModelSelect.value.includes('claude-opus-4-7'));
+  const isBClaudeThinking = elements.paneBProviderSelect.value === 'claude' && (elements.claudeModelSelect.value.includes('claude-sonnet-4-6') || elements.claudeModelSelect.value.includes('claude-opus-4-7'));
+  const isClaudeThinking = isAClaudeThinking || isBClaudeThinking;
 
-  if (isClaudeThinking && (currentLayout === 'claude' || currentLayout === 'compare')) {
+  if (isClaudeThinking && (currentLayout === 'claude' || currentLayout === 'compare' || currentLayout === 'gemini')) {
     noteEl.style.display = 'flex';
     if (currentLayout === 'compare') {
       textEl.textContent = 'Claude Thinking is active: its temperature will be auto-set to 1.0 (sampling parameters omitted). Selected temperature still applies to Gemini.';
       
-      // If we are in split/compare layout, the temperature slider is shared and should remain enabled for Gemini
       if (temperatureSliderLocked) {
         elements.tempSlider.disabled = false;
         elements.tempSlider.value = savedUserTemperature;
@@ -374,7 +523,6 @@ function updateTemperatureUI() {
     } else {
       textEl.textContent = 'Claude Thinking is active: temperature is auto-set to 1.0 (sampling parameters omitted) to prevent API errors.';
       
-      // In single Claude layout, we can lock/disable the slider and auto-set it to 1.0 to show it is auto-managed
       if (!temperatureSliderLocked) {
         savedUserTemperature = parseFloat(elements.tempSlider.value);
         temperatureSliderLocked = true;
@@ -422,12 +570,6 @@ function updateModelPriceTags() {
     }
   }
 }
-
-// Connect to Claude model change event
-elements.claudeModelSelect.addEventListener('change', () => {
-  updateTemperatureUI();
-  updateModelPriceTags();
-});
 
 
 // Sandbox Switch Toggle Status Updates
@@ -565,10 +707,13 @@ function resetMetricsReadout(provider) {
 // CORE STREAMING API CALLS (DUEL ORCHESTRATION)
 // ==========================================================================
 
-async function streamModel(provider, prompt) {
+async function streamModel(panelId, prompt) {
   const isSandbox = elements.sandboxCheckbox.checked;
   const config = getCredentialsConfig();
   
+  const provider = panelId === 'a' ? elements.paneAProviderSelect.value : elements.paneBProviderSelect.value;
+  const model = panelId === 'a' ? elements.geminiModelSelect.value : elements.claudeModelSelect.value;
+
   // Live validation
   if (!isSandbox) {
     if (!config.projectId) {
@@ -585,16 +730,12 @@ async function streamModel(provider, prompt) {
     }
   }
 
-  const model = provider === 'gemini' 
-    ? elements.geminiModelSelect.value 
-    : elements.claudeModelSelect.value;
-
   const sysPrompt = elements.systemPrompt.value.trim();
   const temp = parseFloat(elements.tempSlider.value);
   const maxTokens = parseInt(elements.tokensSlider.value);
 
   // Setup visual containers
-  const consoleEl = provider === 'gemini' ? elements.geminiConsole : elements.claudeConsole;
+  const consoleEl = panelId === 'a' ? elements.geminiConsole : elements.claudeConsole;
   
   // Clear placeholder if it exists
   const placeholder = consoleEl.querySelector('.placeholder-msg');
@@ -628,7 +769,7 @@ async function streamModel(provider, prompt) {
   let actualInputTokens = estimatedInputTokens;
 
   // Reset readings
-  resetMetricsReadout(provider);
+  resetMetricsReadout(panelId === 'a' ? 'gemini' : 'claude');
 
   function updateResponseUI() {
     let html = '';
@@ -651,13 +792,13 @@ async function streamModel(provider, prompt) {
 
     // Update real-time metrics
     tokenCount = thinkingTokens + outputTokens;
-    const countLabel = provider === 'gemini' ? elements.geminiCount : elements.claudeCount;
+    const countLabel = panelId === 'a' ? elements.geminiCount : elements.claudeCount;
     if (countLabel) countLabel.textContent = tokenCount;
 
     // Live speeds: tokens / elapsed seconds
     const elapsedSeconds = (performance.now() - startTime) / 1000;
     const speed = (tokenCount / Math.max(elapsedSeconds, 0.1)).toFixed(1);
-    const speedLabel = provider === 'gemini' ? elements.geminiSpeed : elements.claudeSpeed;
+    const speedLabel = panelId === 'a' ? elements.geminiSpeed : elements.claudeSpeed;
     if (speedLabel) speedLabel.textContent = speed;
 
     // Estimate costs
@@ -665,17 +806,17 @@ async function streamModel(provider, prompt) {
     const inputCost = (actualInputTokens / 1000000) * modelRates.input;
     const outputCost = ((thinkingTokens + outputTokens) / 1000000) * modelRates.output;
     const totalCost = (inputCost + outputCost).toFixed(5);
-    const costLabel = provider === 'gemini' ? elements.geminiCost : elements.claudeCost;
+    const costLabel = panelId === 'a' ? elements.geminiCost : elements.claudeCost;
     if (costLabel) costLabel.textContent = `$${totalCost}`;
 
     // Update graphical segmented bar & legends
-    const barInput = provider === 'gemini' ? elements.geminiBarInput : elements.claudeBarInput;
-    const barThinking = provider === 'gemini' ? elements.geminiBarThinking : elements.claudeBarThinking;
-    const barOutput = provider === 'gemini' ? elements.geminiBarOutput : elements.claudeBarOutput;
+    const barInput = panelId === 'a' ? elements.geminiBarInput : elements.claudeBarInput;
+    const barThinking = panelId === 'a' ? elements.geminiBarThinking : elements.claudeBarThinking;
+    const barOutput = panelId === 'a' ? elements.geminiBarOutput : elements.claudeBarOutput;
 
-    const legendInput = provider === 'gemini' ? elements.geminiLegendInput : elements.claudeLegendInput;
-    const legendThinking = provider === 'gemini' ? elements.geminiLegendThinking : elements.claudeLegendThinking;
-    const legendOutput = provider === 'gemini' ? elements.geminiLegendOutput : elements.claudeLegendOutput;
+    const legendInput = panelId === 'a' ? elements.geminiLegendInput : elements.claudeLegendInput;
+    const legendThinking = panelId === 'a' ? elements.geminiLegendThinking : elements.claudeLegendThinking;
+    const legendOutput = panelId === 'a' ? elements.geminiLegendOutput : elements.claudeLegendOutput;
 
     if (legendInput) legendInput.textContent = actualInputTokens;
     if (legendThinking) legendThinking.textContent = thinkingTokens;
@@ -693,6 +834,17 @@ async function streamModel(provider, prompt) {
     }
   }
 
+  // Get thinking options dynamically based on provider
+  let thinkingOptions = { mode: 'HIGH', budget: 1024 };
+  if (provider === 'gemini') {
+    const select = panelId === 'a' ? elements.geminiThinkingSelect : elements.claudeThinkingSelect;
+    const slider = panelId === 'a' ? elements.thinkingBudgetSlider : elements.claudeThinkingBudgetSlider;
+    thinkingOptions = {
+      mode: select ? select.value : 'HIGH',
+      budget: slider ? parseInt(slider.value) : 1024
+    };
+  }
+
   try {
     const response = await fetch('/api/generate', {
       method: 'POST',
@@ -706,10 +858,7 @@ async function streamModel(provider, prompt) {
         maxTokens: maxTokens,
         sandboxMode: isSandbox,
         config: config,
-        geminiThinking: {
-          mode: elements.geminiThinkingSelect ? elements.geminiThinkingSelect.value : 'HIGH',
-          budget: elements.thinkingBudgetSlider ? parseInt(elements.thinkingBudgetSlider.value) : 1024
-        }
+        geminiThinking: thinkingOptions
       })
     });
 
@@ -728,8 +877,6 @@ async function streamModel(provider, prompt) {
       done = streamDone;
       if (value) {
         const chunkStr = decoder.decode(value, { stream: !done });
-        // Server sends Server-Sent Events (SSE). Chunk format:
-        // data: {"text": "something"} \n\n
         const lines = chunkStr.split('\n');
         for (const line of lines) {
           const trimmed = line.trim();
@@ -739,7 +886,6 @@ async function streamModel(provider, prompt) {
               const parsed = JSON.parse(dataStr);
               
               if (parsed.done) {
-                // Done event
                 done = true;
                 break;
               }
@@ -758,7 +904,7 @@ async function streamModel(provider, prompt) {
                 if (!firstTokenReceived) {
                   firstTokenReceived = true;
                   const ttftMs = (performance.now() - startTime).toFixed(0);
-                  const ttftLabel = provider === 'gemini' ? elements.geminiTtft : elements.claudeTtft;
+                  const ttftLabel = panelId === 'a' ? elements.geminiTtft : elements.claudeTtft;
                   if (ttftLabel) ttftLabel.textContent = `${ttftMs} ms`;
                 }
 
@@ -772,7 +918,6 @@ async function streamModel(provider, prompt) {
                 updateResponseUI();
               }
             } catch(e) {
-              // Ignore split JSON lines across TCP packets
             }
           }
         }
@@ -783,7 +928,6 @@ async function streamModel(provider, prompt) {
     let errMsg = err.message;
     let errorHTML = `<span style="color: var(--color-danger); font-weight:600;">⚠️ Error Stream Interrupted:</span><br><span class="mono-font">${errMsg}</span>`;
     
-    // Check if it is a 404/access error for Claude or partner models
     const errMsgLower = errMsg.toLowerCase();
     if (errMsgLower.includes('not found') && errMsgLower.includes('project does not have access') && errMsgLower.includes('anthropic')) {
       const activeProjId = elements.gcpProjectId.value.trim() || 'mokabir-project-argolis';
@@ -833,21 +977,16 @@ elements.promptForm.addEventListener('submit', (e) => {
   const prompt = elements.promptInput.value.trim();
   if (!prompt) return;
 
-  // Clear input box
   elements.promptInput.value = '';
-
-  // Resize prompt textarea back to default height
   elements.promptInput.style.height = '48px';
 
-  // Fire requests depending on active tabs layout selection
   if (currentLayout === 'compare') {
-    // Concurrent dual-execution stream
-    streamModel('gemini', prompt);
-    streamModel('claude', prompt);
+    streamModel('a', prompt);
+    streamModel('b', prompt);
   } else if (currentLayout === 'gemini') {
-    streamModel('gemini', prompt);
+    streamModel('a', prompt);
   } else if (currentLayout === 'claude') {
-    streamModel('claude', prompt);
+    streamModel('b', prompt);
   }
 });
 
@@ -1086,7 +1225,16 @@ function initBenchmarks() {
 window.addEventListener('load', async () => {
   loadSavedCredentials();
   await loadServerConfig();
-  updateThinkingConfigPanel();
+  
+  // Set initial models dropdowns based on default provider values
+  populateModels('a');
+  populateModels('b');
+  updatePanelTheme('a');
+  updatePanelTheme('b');
+  
+  updateThinkingConfigPanel('a');
+  updateThinkingConfigPanel('b');
+  
   updateTemperatureUI();
   updateModelPriceTags();
   initBenchmarks();

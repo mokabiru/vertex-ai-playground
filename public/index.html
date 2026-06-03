@@ -126,35 +126,44 @@
           Compare Arena (Side-by-Side)
         </button>
         <button id="tab-gemini" class="tab-btn">
-          <span class="model-color-indicator gemini-glow-small"></span>
-          Google Gemini
+          <span id="tab-a-indicator" class="model-color-indicator gemini-glow-small"></span>
+          <span id="tab-a-label">Panel A</span>
         </button>
         <button id="tab-claude" class="tab-btn">
-          <span class="model-color-indicator claude-glow-small"></span>
-          Anthropic Claude
+          <span id="tab-b-indicator" class="model-color-indicator claude-glow-small"></span>
+          <span id="tab-b-label">Panel B</span>
         </button>
       </div>
 
       <!-- Panes Display Layout Container -->
       <div id="arena-grid" class="arena-grid split-layout">
         
-        <!-- PANE 1: Google Gemini -->
+        <!-- PANE A -->
         <article id="pane-gemini" class="arena-pane model-pane-gemini">
           <div class="pane-header">
             <div class="model-meta">
               <!-- Gemini SVG Logo -->
               <svg class="model-svg-logo gemini-logo" viewBox="0 0 24 24" width="22" height="22">
-                <path fill="url(#gemini-gradient)" d="M12,2 L14.5,9.5 L22,12 L14.5,14.5 L12,22 L9.5,14.5 L2,12 L9.5,9.5 Z" />
+                <path fill="url(#pane-a-gemini-gradient)" d="M12,2 L14.5,9.5 L22,12 L14.5,14.5 L12,22 L9.5,14.5 L2,12 L9.5,9.5 Z" />
                 <defs>
-                  <linearGradient id="gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="pane-a-gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stop-color="#4285F4" />
                     <stop offset="50%" stop-color="#9b51e0" />
                     <stop offset="100%" stop-color="#ea4335" />
                   </linearGradient>
                 </defs>
               </svg>
+              <!-- Claude SVG Logo -->
+              <svg class="model-svg-logo claude-logo" viewBox="0 0 24 24" width="22" height="22" style="display: none;">
+                <path fill="#e05a47" d="M12,2 L13.5,8 L19,6 L15,10.5 L21.5,12 L15,13.5 L19,18 L13.5,16 L12,22 L10.5,16 L5,18 L9,13.5 L2.5,12 L9,10.5 L5,6 L10.5,8 Z" />
+              </svg>
               <div class="model-identity">
-                <h3>Google Gemini</h3>
+                <div class="provider-selector-wrapper">
+                  <select id="pane-a-provider-select" class="dropdown-select provider-select">
+                    <option value="gemini" selected>Google Gemini</option>
+                    <option value="claude">Anthropic Claude</option>
+                  </select>
+                </div>
                 <div class="model-selector-wrapper">
                   <select id="gemini-model-select" class="dropdown-select">
                     <option value="gemini-3.5-flash" selected>gemini-3.5-flash (Latest Stable Default)</option>
@@ -230,21 +239,37 @@
           <div id="gemini-console" class="pane-content-console">
             <div class="placeholder-msg">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-              <p>Enter a prompt below to stream Gemini's response.</p>
+              <p>Enter a prompt below to stream responses.</p>
             </div>
           </div>
         </article>
 
-        <!-- PANE 2: Anthropic Claude -->
+        <!-- PANE B -->
         <article id="pane-claude" class="arena-pane model-pane-claude">
           <div class="pane-header">
             <div class="model-meta">
+              <!-- Gemini SVG Logo -->
+              <svg class="model-svg-logo gemini-logo" viewBox="0 0 24 24" width="22" height="22" style="display: none;">
+                <path fill="url(#pane-b-gemini-gradient)" d="M12,2 L14.5,9.5 L22,12 L14.5,14.5 L12,22 L9.5,14.5 L2,12 L9.5,9.5 Z" />
+                <defs>
+                  <linearGradient id="pane-b-gemini-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4285F4" />
+                    <stop offset="50%" stop-color="#9b51e0" />
+                    <stop offset="100%" stop-color="#ea4335" />
+                  </linearGradient>
+                </defs>
+              </svg>
               <!-- Claude SVG Logo -->
               <svg class="model-svg-logo claude-logo" viewBox="0 0 24 24" width="22" height="22">
                 <path fill="#e05a47" d="M12,2 L13.5,8 L19,6 L15,10.5 L21.5,12 L15,13.5 L19,18 L13.5,16 L12,22 L10.5,16 L5,18 L9,13.5 L2.5,12 L9,10.5 L5,6 L10.5,8 Z" />
               </svg>
               <div class="model-identity">
-                <h3>Anthropic Claude</h3>
+                <div class="provider-selector-wrapper">
+                  <select id="pane-b-provider-select" class="dropdown-select provider-select">
+                    <option value="gemini">Google Gemini</option>
+                    <option value="claude" selected>Anthropic Claude</option>
+                  </select>
+                </div>
                 <div class="model-selector-wrapper">
                   <select id="claude-model-select" class="dropdown-select">
                     <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6 (Latest Sonnet)</option>
@@ -252,7 +277,25 @@
                     <option value="claude-haiku-4-5@20251001">claude-haiku-4-5 (Speed/Cost)</option>
                     <option value="claude-3-5-sonnet@20241022">claude-3-5-sonnet-v2 (Legacy)</option>
                   </select>
+
+                  <!-- Inline Claude Thinking Selector Capsule (for symmetry, though Claude settings are auto-managed) -->
+                  <div id="claude-thinking-container" class="thinking-selector-inline" style="display: none;">
+                    <select id="claude-thinking-select" class="dropdown-select dropdown-select-thinking" disabled>
+                      <option value="ADAPTIVE">ADAPTIVE</option>
+                    </select>
+                    <span class="badge-thinking-type" id="claude-thinking-badge">Claude Mode</span>
+                  </div>
+
                   <span id="claude-model-price" class="model-price-tag"></span>
+                </div>
+
+                <!-- Contextual Budget Slider for Claude (for future use/symmetry, hidden) -->
+                <div class="thinking-budget-slider-wrapper" id="claude-thinking-budget-slider-wrapper" style="display: none;">
+                  <div class="slider-row">
+                    <label for="claude-thinking-budget" class="field-label">Thinking Budget</label>
+                    <span id="claude-thinking-budget-val" class="slider-digital-value">1024</span>
+                  </div>
+                  <input type="range" id="claude-thinking-budget" min="1024" max="8192" step="512" value="1024" class="slider">
                 </div>
               </div>
             </div>
@@ -298,7 +341,7 @@
           <div id="claude-console" class="pane-content-console">
             <div class="placeholder-msg">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-              <p>Enter a prompt below to stream Claude's response.</p>
+              <p>Enter a prompt below to stream responses.</p>
             </div>
           </div>
         </article>

@@ -1753,3 +1753,43 @@ textarea#prompt-input {
   animation: pulseHighlight 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
+/* Dynamic Provider Selector Styles */
+.provider-selector-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.provider-selector-wrapper .provider-select {
+  background: transparent;
+  border: none;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-family: var(--font-header);
+  color: var(--text-primary);
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  letter-spacing: 0.02rem;
+  box-shadow: none !important;
+  margin-bottom: 0.15rem;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 1.25rem;
+}
+
+.provider-selector-wrapper::after {
+  content: "▾";
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  position: absolute;
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.provider-selector-wrapper:hover::after {
+  opacity: 1;
+  color: var(--text-secondary);
+}
