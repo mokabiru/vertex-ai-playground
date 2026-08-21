@@ -1,6 +1,6 @@
-# Gemini Arena & Benchmarking Suite — Vertex AI & Google AI Studio
+# Gemini Arena & Benchmarking Suite — Gemini Enterprise Agent Platform (GEAP) & Google AI Studio
 
-A sleek, premium, and zero-dependency local web arena designed to benchmark, interact with, and perform side-by-side stream duels between **Google Gemini (3.7 / 3.6 / 3.5 / 3.0 / 2.5 / 2.0 / 1.5 Series)** and **Anthropic Claude** models across **Google AI Studio** and **Google Cloud Vertex AI**.
+A sleek, premium, and zero-dependency local web arena designed to benchmark, interact with, and perform side-by-side stream duels between **Google Gemini (3.7 / 3.6 / 3.5 / 3.0 / 2.5 / 2.0 / 1.5 Series)** and **Anthropic Claude** models across **Google AI Studio** and **Gemini Enterprise Agent Platform (GEAP)**.
 
 Runs on a lightweight vanilla Node server with zero `node_modules` required.
 
@@ -21,7 +21,7 @@ Runs on a lightweight vanilla Node server with zero `node_modules` required.
   - **Custom Model ID Entry**: Benchmark any fine-tuned or custom endpoint.
 - **Dual Authentication Modes**:
   - **Google AI Studio API Key (`AIzaSy...`)**: Instant live access with zero GCP configuration required.
-  - **Google Cloud Vertex AI**: Native OAuth Access Token (`gcloud`) or Service Account JSON key (with native RSA-SHA256 JWT signing and auto-refresh).
+  - **Gemini Enterprise Agent Platform (GEAP)**: Native OAuth Access Token (`gcloud`) or Service Account JSON key (with native RSA-SHA256 JWT signing and auto-refresh).
 - **Automated Benchmarking Suites**:
   - **Reasoning & Logic**: Logic grids, counterfactual physics, causality, ARC-AGI pattern shifts.
   - **SWE-Bench & Coding**: Package imports, async memory leaks, MongoDB race conditions, cyclic graph coloring.
@@ -75,33 +75,13 @@ To run live models against Google endpoints:
 3. Select **Google AI Studio API Key**, paste your `AIzaSy...` key, and click **Save Settings**.
 4. (Optional) Alternatively, export `GEMINI_API_KEY="your_api_key"` in a `.env` file.
 
-### Option 2: Google Cloud Vertex AI (OAuth Access Token)
+### Option 2: Gemini Enterprise Agent Platform (GEAP) (OAuth Access Token)
 1. Generate a token via Google Cloud SDK:
    ```bash
    gcloud auth print-access-token
    ```
 2. In the **API & Auth** modal, select **GCP OAuth Access Token**, provide your **Project ID**, **Region**, and token.
 
-### Option 3: Google Cloud Vertex AI (Service Account JSON)
+### Option 3: Gemini Enterprise Agent Platform (GEAP) (Service Account JSON)
 1. In the **API & Auth** modal, select **GCP Service Account JSON**.
 2. Paste the contents of your Service Account JSON key. The server automatically signs assertions via native RSA crypto.
-
----
-
-## 📊 Supported Models & Pricing Reference
-
-| Provider | Model ID | Input (per 1M) | Output (per 1M) | Primary Capability |
-| :--- | :--- | :--- | :--- | :--- |
-| **Google** | `gemini-3.7-flash` | $0.075 | $0.30 | SOTA Hybrid Reasoning & Thinking Budget |
-| **Google** | `gemini-3.6-flash` | $0.075 | $0.30 | Gemini 3.x Series |
-| **Google** | `gemini-3.5-flash` | $0.075 | $0.30 | Gemini 3.5 Series |
-| **Google** | `gemini-3.0-flash` | $0.075 | $0.30 | Gemini 3.0 Flash Preview |
-| **Google** | `gemini-3.0-pro` | $1.25 | $5.00 | Gemini 3.0 Pro Reasoning |
-| **Google** | `gemini-2.5-pro` | $1.25 | $5.00 | Heavyweight Coding & Deep Logic |
-| **Google** | `gemini-2.5-flash` | $0.075 | $0.30 | Versatile Multimodal Workhorse |
-| **Google** | `gemini-2.5-flash-lite` | $0.0375 | $0.15 | Ultra Low Latency & High Throughput |
-| **Google** | `gemini-2.0-flash` | $0.075 | $0.30 | Rapid Response Speed |
-| **Google** | `gemini-1.5-pro` | $1.25 | $5.00 | 2M Context Window |
-| **Anthropic** | `claude-sonnet-4-6` | $3.00 | $15.00 | High-Effort Reasoning |
-| **Anthropic** | `claude-opus-4-7` | $5.00 | $25.00 | Deep Analysis |
-| **Anthropic** | `claude-haiku-4-5` | $1.00 | $5.00 | Cost / Latency Optimized |
