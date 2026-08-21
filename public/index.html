@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agent Platform Playground</title>
+  <title>Gemini Arena & Benchmarking Suite — Vertex AI & Google AI Studio</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
@@ -24,20 +24,35 @@
         <span class="logo-particle claude-dot"></span>
       </div>
       <div class="logo-text">
-        <h1>AGENT PLATFORM <span>PLAYGROUND</span></h1>
-        <p>Gemini and other models multi-stream console</p>
+        <h1>GEMINI ARENA <span>BENCHMARK</span></h1>
+        <p>Vertex AI & Google AI Studio Multi-Model Telemetry Lab</p>
       </div>
     </div>
     
     <div class="header-controls">
-      <!-- Sandbox / Live Badge -->
-      <div id="sandbox-badge" class="badge-status sandbox-active">
-        <span class="pulse-indicator"></span>
-        <span class="badge-text">SANDBOX MODE ACTIVE</span>
+      <!-- Theme Switcher -->
+      <div class="theme-selector-group">
+        <button id="theme-btn-dark" class="btn-theme-pill active" title="Cyber Dark Theme">Dark</button>
+        <button id="theme-btn-oled" class="btn-theme-pill" title="Deep OLED Black">OLED</button>
+        <button id="theme-btn-light" class="btn-theme-pill" title="Studio Light Theme">Light</button>
       </div>
+
+      <!-- Sandbox / Live Badge -->
+      <div id="sandbox-badge" class="badge-status live-active">
+        <span class="pulse-indicator"></span>
+        <span class="badge-text">LIVE MODEL ACTIVE</span>
+      </div>
+
+      <!-- Quick Benchmark Suite Button -->
+      <button id="btn-open-suite" class="btn btn-benchmark-header" title="Open Automated Benchmark Suite">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>Suite Scorecard</span>
+      </button>
+
+      <!-- Credentials Button -->
       <button id="btn-open-config" class="btn btn-secondary">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-        GCP Credentials
+        <span>API & Auth</span>
       </button>
     </div>
   </header>
@@ -50,7 +65,7 @@
       
       <!-- Panel Header -->
       <div class="sidebar-header">
-        <h3>CONTROLS</h3>
+        <h3>ARENA CONTROLS</h3>
         <span class="divider"></span>
       </div>
 
@@ -59,10 +74,10 @@
         <div class="toggle-row">
           <div class="toggle-info">
             <span class="toggle-label">Sandbox Mode</span>
-            <span class="toggle-desc">Simulate requests without billing/keys</span>
+            <span class="toggle-desc">Simulate telemetry without API keys</span>
           </div>
           <label class="switch-toggle">
-            <input type="checkbox" id="sandbox-checkbox" checked>
+            <input type="checkbox" id="sandbox-checkbox">
             <span class="switch-slider"></span>
           </label>
         </div>
@@ -71,13 +86,20 @@
       <!-- Parameters Section -->
       <div class="control-group">
 
-        <!-- Gemini Thinking Settings relocated inline next to model selector -->
-
-        <h4>MODEL PARAMETERS</h4>
+        <h4>GENERATION PARAMETERS</h4>
         
-        <!-- System Prompt -->
+        <!-- System Prompt with Presets -->
         <div class="control-card system-prompt-card">
-          <label for="system-prompt" class="field-label">System Instruction</label>
+          <div class="field-header-row">
+            <label for="system-prompt" class="field-label">System Instruction</label>
+            <select id="sys-prompt-presets" class="preset-select">
+              <option value="" selected>Custom / None</option>
+              <option value="coder">Expert Coder</option>
+              <option value="analyst">Concise Analyst</option>
+              <option value="math">Math & Logic Rigor</option>
+              <option value="json">Strict JSON Schema</option>
+            </select>
+          </div>
           <textarea id="system-prompt" placeholder="Define system-level instructions, constraints, or personality guidelines..."></textarea>
         </div>
 
@@ -85,31 +107,59 @@
         <div class="control-card temperature-card">
           <div class="slider-row">
             <label for="param-temp" class="field-label">Temperature</label>
-            <span id="temp-val" class="slider-digital-value">1.0</span>
+            <span id="temp-val" class="slider-digital-value">0.7</span>
           </div>
-          <input type="range" id="param-temp" min="0" max="1" step="0.05" value="1.0" class="slider">
+          <input type="range" id="param-temp" min="0" max="2" step="0.05" value="0.7" class="slider">
           <div class="slider-labels">
-            <span>Precise (0.0)</span>
-            <span>Creative (1.0)</span>
+            <span>Deterministic (0.0)</span>
+            <span>Balanced (1.0)</span>
+            <span>Creative (2.0)</span>
           </div>
           <div id="temp-info-note" class="helper-text-note" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 1px; flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            <span id="temp-info-text">Claude Thinking Mode is active: Temperature is auto-set to 1.0.</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span id="temp-info-text">Claude Thinking Mode is active: Temperature is auto-managed.</span>
           </div>
         </div>
 
+        <!-- Top-P & Top-K -->
+        <div class="form-row-2col">
+          <div class="control-card">
+            <div class="slider-row">
+              <label for="param-topp" class="field-label">Top-P</label>
+              <span id="topp-val" class="slider-digital-value">0.95</span>
+            </div>
+            <input type="range" id="param-topp" min="0" max="1" step="0.05" value="0.95" class="slider">
+          </div>
+          <div class="control-card">
+            <div class="slider-row">
+              <label for="param-topk" class="field-label">Top-K</label>
+              <span id="topk-val" class="slider-digital-value">40</span>
+            </div>
+            <input type="range" id="param-topk" min="1" max="64" step="1" value="40" class="slider">
+          </div>
+        </div>
 
         <!-- Max Output Tokens -->
         <div class="control-card tokens-card">
           <div class="slider-row">
             <label for="param-tokens" class="field-label">Max Output Tokens</label>
-            <span id="tokens-val" class="slider-digital-value">2048</span>
+            <span id="tokens-val" class="slider-digital-value">4096</span>
           </div>
-          <input type="range" id="param-tokens" min="128" max="8192" step="128" value="2048" class="slider">
+          <input type="range" id="param-tokens" min="256" max="65536" step="256" value="4096" class="slider">
           <div class="slider-labels">
-            <span>128</span>
-            <span>8192</span>
+            <span>256</span>
+            <span>8K</span>
+            <span>64K</span>
           </div>
+        </div>
+
+        <!-- Response Format Selector -->
+        <div class="control-card">
+          <label for="param-response-mime" class="field-label">Response Format</label>
+          <select id="param-response-mime" class="dropdown-select">
+            <option value="" selected>Text / Markdown</option>
+            <option value="application/json">Structured JSON (application/json)</option>
+          </select>
         </div>
 
       </div>
@@ -132,6 +182,10 @@
         <button id="tab-claude" class="tab-btn">
           <span id="tab-b-indicator" class="model-color-indicator claude-glow-small"></span>
           <span id="tab-b-label">Panel B</span>
+        </button>
+        <button id="tab-analytics" class="tab-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Benchmark Analytics
         </button>
       </div>
 
@@ -166,18 +220,30 @@
                 </div>
                 <div class="model-selector-wrapper">
                   <select id="gemini-model-select" class="dropdown-select">
-                    <option value="gemini-3.5-flash" selected>gemini-3.5-flash (Latest Stable Default)</option>
-                    <option value="gemini-2.5-flash">gemini-2.5-flash (Stable Flash)</option>
-                    <option value="gemini-2.5-pro">gemini-2.5-pro (Stable Pro)</option>
-                    <option value="gemini-2.0-flash">gemini-2.0-flash (Deprecated)</option>
+                    <option value="gemini-3.7-flash" selected>gemini-3.7-flash (Hybrid Reasoning Default)</option>
+                    <option value="gemini-3.6-flash">gemini-3.6-flash (3.x Series)</option>
+                    <option value="gemini-3.5-flash">gemini-3.5-flash (3.5 Preview)</option>
+                    <option value="gemini-3.0-flash">gemini-3.0-flash (3.0 Flash)</option>
+                    <option value="gemini-3.0-pro">gemini-3.0-pro (3.0 Pro)</option>
+                    <option value="gemini-2.5-pro">gemini-2.5-pro (SOTA Reasoning & Coding)</option>
+                    <option value="gemini-2.5-flash">gemini-2.5-flash (Fast Thinking Workhorse)</option>
+                    <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (Ultra Low Latency)</option>
+                    <option value="gemini-2.0-flash">gemini-2.0-flash (High Throughput)</option>
+                    <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite (Lightweight)</option>
+                    <option value="gemini-2.0-pro-exp-02-05">gemini-2.0-pro-exp-02-05 (Experimental Pro)</option>
+                    <option value="gemini-1.5-pro">gemini-1.5-pro (2M Context Flagship)</option>
+                    <option value="gemini-1.5-flash">gemini-1.5-flash (Legacy Fast)</option>
+                    <option value="custom">⚡ Custom Model ID...</option>
                   </select>
+
+                  <input type="text" id="gemini-custom-model-input" class="custom-model-text" placeholder="e.g. projects/.../models/my-custom-model" style="display: none;">
 
                   <!-- Inline Gemini Thinking Selector Capsule -->
                   <div id="gemini-thinking-container" class="thinking-selector-inline">
                     <select id="gemini-thinking-select" class="dropdown-select dropdown-select-thinking">
-                      <!-- Options populated dynamically by index.js -->
+                      <!-- Options populated dynamically -->
                     </select>
-                    <span class="badge-thinking-type" id="gemini-thinking-badge">G3.5 Mode</span>
+                    <span class="badge-thinking-type" id="gemini-thinking-badge">G3.7 Mode</span>
                   </div>
 
                   <span id="gemini-model-price" class="model-price-tag"></span>
@@ -187,12 +253,13 @@
                 <div class="thinking-budget-slider-wrapper" id="thinking-budget-slider-wrapper" style="display: none;">
                   <div class="slider-row">
                     <label for="gemini-thinking-budget" class="field-label">Thinking Budget</label>
-                    <span id="thinking-budget-val" class="slider-digital-value">1024</span>
+                    <span id="thinking-budget-val" class="slider-digital-value">2048</span>
                   </div>
-                  <input type="range" id="gemini-thinking-budget" min="1024" max="8192" step="512" value="1024" class="slider">
+                  <input type="range" id="gemini-thinking-budget" min="512" max="65536" step="512" value="2048" class="slider">
                   <div class="slider-labels">
-                    <span>1024</span>
-                    <span>8192</span>
+                    <span>512</span>
+                    <span>16K</span>
+                    <span>64K</span>
                   </div>
                 </div>
               </div>
@@ -239,7 +306,7 @@
           <div id="gemini-console" class="pane-content-console">
             <div class="placeholder-msg">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-              <p>Enter a prompt below to stream responses.</p>
+              <p>Enter a prompt or select a benchmark to stream responses.</p>
             </div>
           </div>
         </article>
@@ -273,12 +340,15 @@
                 <div class="model-selector-wrapper">
                   <select id="claude-model-select" class="dropdown-select">
                     <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6 (Latest Sonnet)</option>
-                    <option value="claude-opus-4-7">claude-opus-4-7 (Latest Opus)</option>
+                    <option value="claude-opus-4-7">claude-opus-4-7 (Flagship Opus)</option>
                     <option value="claude-haiku-4-5@20251001">claude-haiku-4-5 (Speed/Cost)</option>
                     <option value="claude-3-5-sonnet@20241022">claude-3-5-sonnet-v2 (Legacy)</option>
+                    <option value="custom">⚡ Custom Model ID...</option>
                   </select>
 
-                  <!-- Inline Claude Thinking Selector Capsule (for symmetry, though Claude settings are auto-managed) -->
+                  <input type="text" id="claude-custom-model-input" class="custom-model-text" placeholder="e.g. custom model id" style="display: none;">
+
+                  <!-- Inline Claude Thinking Selector Capsule -->
                   <div id="claude-thinking-container" class="thinking-selector-inline" style="display: none;">
                     <select id="claude-thinking-select" class="dropdown-select dropdown-select-thinking" disabled>
                       <option value="ADAPTIVE">ADAPTIVE</option>
@@ -289,13 +359,13 @@
                   <span id="claude-model-price" class="model-price-tag"></span>
                 </div>
 
-                <!-- Contextual Budget Slider for Claude (for future use/symmetry, hidden) -->
+                <!-- Contextual Budget Slider for Claude -->
                 <div class="thinking-budget-slider-wrapper" id="claude-thinking-budget-slider-wrapper" style="display: none;">
                   <div class="slider-row">
                     <label for="claude-thinking-budget" class="field-label">Thinking Budget</label>
-                    <span id="claude-thinking-budget-val" class="slider-digital-value">1024</span>
+                    <span id="claude-thinking-budget-val" class="slider-digital-value">2048</span>
                   </div>
-                  <input type="range" id="claude-thinking-budget" min="1024" max="8192" step="512" value="1024" class="slider">
+                  <input type="range" id="claude-thinking-budget" min="512" max="65536" step="512" value="2048" class="slider">
                 </div>
               </div>
             </div>
@@ -341,10 +411,103 @@
           <div id="claude-console" class="pane-content-console">
             <div class="placeholder-msg">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-              <p>Enter a prompt below to stream responses.</p>
+              <p>Enter a prompt or select a benchmark to stream responses.</p>
             </div>
           </div>
         </article>
+
+      </div>
+
+      <!-- Analytics Dashboard View (Rendered when Tab is active) -->
+      <div id="analytics-panel" class="analytics-view-panel" style="display: none;">
+        <div class="analytics-header">
+          <div class="analytics-title">
+            <h3>⚡ Live Benchmark Telemetry & Scorecard</h3>
+            <p>Side-by-side performance breakdown for the latest evaluation run.</p>
+          </div>
+          <div class="analytics-actions">
+            <button id="btn-export-md" class="btn btn-secondary-icon-text">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Markdown
+            </button>
+            <button id="btn-export-json" class="btn btn-secondary-icon-text">Export JSON</button>
+            <button id="btn-export-csv" class="btn btn-secondary-icon-text">Export CSV</button>
+          </div>
+        </div>
+
+        <div class="scorecard-grid">
+          <!-- Model A Card -->
+          <div class="scorecard-model-box" id="scorecard-box-a">
+            <div class="scorecard-model-title" id="scorecard-title-a">Panel A</div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">TTFT (Latency):</span>
+              <strong class="stat-val" id="scorecard-ttft-a">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Speed (TPS):</span>
+              <strong class="stat-val" id="scorecard-speed-a">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Thinking Tokens:</span>
+              <strong class="stat-val" id="scorecard-think-a">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Total Output:</span>
+              <strong class="stat-val" id="scorecard-out-a">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Est. Cost:</span>
+              <strong class="stat-val" id="scorecard-cost-a">--</strong>
+            </div>
+          </div>
+
+          <!-- Winner Verdict Center Box -->
+          <div class="scorecard-verdict-box" id="scorecard-verdict-box">
+            <div class="verdict-trophy">🏆</div>
+            <div class="verdict-label">HEAD-TO-HEAD WINNER</div>
+            <div class="verdict-summary" id="scorecard-verdict-text">Run a duel or benchmark suite to see head-to-head metrics.</div>
+            <div class="verdict-deltas" id="scorecard-deltas-text"></div>
+          </div>
+
+          <!-- Model B Card -->
+          <div class="scorecard-model-box" id="scorecard-box-b">
+            <div class="scorecard-model-title" id="scorecard-title-b">Panel B</div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">TTFT (Latency):</span>
+              <strong class="stat-val" id="scorecard-ttft-b">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Speed (TPS):</span>
+              <strong class="stat-val" id="scorecard-speed-b">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Thinking Tokens:</span>
+              <strong class="stat-val" id="scorecard-think-b">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Total Output:</span>
+              <strong class="stat-val" id="scorecard-out-b">--</strong>
+            </div>
+            <div class="scorecard-stat-row">
+              <span class="stat-name">Est. Cost:</span>
+              <strong class="stat-val" id="scorecard-cost-b">--</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry Canvas Chart -->
+        <div class="telemetry-chart-card">
+          <div class="chart-header">
+            <h4>Live Stream Speed Telemetry (Tokens / sec)</h4>
+            <div class="chart-legend">
+              <span class="legend-dot dot-model-a"></span> <span id="chart-legend-a">Model A</span>
+              <span class="legend-dot dot-model-b" style="margin-left: 15px;"></span> <span id="chart-legend-b">Model B</span>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="telemetry-canvas" width="800" height="220"></canvas>
+          </div>
+        </div>
 
       </div>
 
@@ -359,10 +522,16 @@
                 <span>Standard Benchmarks</span>
               </div>
               <div class="benchmark-category-pills">
-                <button type="button" class="benchmark-pill active" data-benchmark="hellaswag">HellaSwag</button>
-                <button type="button" class="benchmark-pill" data-benchmark="swebench">SWE-Bench</button>
-                <button type="button" class="benchmark-pill" data-benchmark="ifeval">IFEval</button>
+                <button type="button" class="benchmark-pill active" data-benchmark="reasoning">Reasoning & Logic</button>
+                <button type="button" class="benchmark-pill" data-benchmark="swebench">SWE-Bench & Coding</button>
+                <button type="button" class="benchmark-pill" data-benchmark="ifeval">IFEval & Constraints</button>
+                <button type="button" class="benchmark-pill" data-benchmark="math">Math & Science</button>
+                <button type="button" class="benchmark-pill" data-benchmark="stress">Latency & Stress</button>
               </div>
+              <button type="button" id="btn-run-all-suite" class="btn btn-suite-run" title="Run all prompts in this category sequentially">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Run Benchmark Batch
+              </button>
             </div>
             <div class="benchmark-prompts-container" id="benchmark-prompts-list">
               <!-- Rendered dynamically by public/index.js -->
@@ -370,13 +539,13 @@
           </div>
 
           <div class="prompt-input-container">
-            <textarea id="prompt-input" placeholder="Type a message or challenge..." required></textarea>
+            <textarea id="prompt-input" placeholder="Type a prompt, enter a challenge, or pick a benchmark above... (Cmd/Ctrl + Enter to run)" required></textarea>
             <div class="prompt-btn-group">
-              <button type="button" id="btn-clear-arena" class="btn btn-secondary-icon" title="Clear all consoles">
+              <button type="button" id="btn-clear-arena" class="btn btn-secondary-icon" title="Clear all consoles (Cmd/Ctrl + K)">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
               </button>
               <button type="submit" id="btn-submit-prompt" class="btn btn-primary-cta">
-                <span>GO</span>
+                <span>DUEL STREAM</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>
             </div>
@@ -388,21 +557,49 @@
 
   </main>
 
-  <!-- GCP Credentials overlay dialog -->
+  <!-- API & Credentials overlay dialog -->
   <dialog id="config-dialog" class="config-dialog">
     <div class="dialog-frame">
       <header class="dialog-header">
-        <h3>Google Cloud Platform Credentials</h3>
+        <h3>API & Authentication Configuration</h3>
         <button id="btn-close-config" class="btn-close-round">&times;</button>
       </header>
       
       <div class="dialog-body">
         <p class="config-dialog-intro">
-          These credentials are used by your local server to authenticate securely with the Vertex AI REST endpoints. They are never sent online other than directly to Google's official OAuth/Vertex servers.
+          Choose between <strong>Google AI Studio API Key</strong> (instant setup, no GCP project required) or <strong>Google Cloud Vertex AI</strong> (Enterprise OAuth / Service Account).
         </p>
 
-        <!-- Project & Location -->
-        <div class="form-row-grid">
+        <!-- Auth Method Selector -->
+        <div class="form-field auth-method-block">
+          <label class="field-label">Authentication Provider</label>
+          <div class="radio-pill-group">
+            <label class="radio-pill">
+              <input type="radio" name="auth-method" value="apiKey" checked>
+              <span class="pill-btn">✨ Google AI Studio API Key</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="auth-method" value="token">
+              <span class="pill-btn">GCP OAuth Access Token</span>
+            </label>
+            <label class="radio-pill">
+              <input type="radio" name="auth-method" value="serviceAccount">
+              <span class="pill-btn">GCP Service Account JSON</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Google AI Studio API Key block -->
+        <div id="auth-box-apikey" class="auth-box-container visible">
+          <div class="form-field">
+            <label for="gemini-api-key" class="field-label-req">Google AI Studio API Key</label>
+            <input type="password" id="gemini-api-key" class="mono-font" placeholder="AIzaSy...">
+            <span class="field-tip">💡 Get your free API key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color: #64b5f6; text-decoration: underline;">aistudio.google.com/apikey</a>. Works immediately for all Gemini models!</span>
+          </div>
+        </div>
+
+        <!-- Vertex AI Project & Region block -->
+        <div id="auth-box-vertex-fields" class="form-row-grid" style="display: none;">
           <div class="form-field">
             <label for="gcp-project-id" class="field-label-req">GCP Project ID</label>
             <input type="text" id="gcp-project-id" placeholder="e.g. vertex-ai-demo-4402">
@@ -420,36 +617,21 @@
           </div>
         </div>
 
-        <!-- Auth Method Selector -->
-        <div class="form-field auth-method-block">
-          <label class="field-label">Authentication Method</label>
-          <div class="radio-pill-group">
-            <label class="radio-pill">
-              <input type="radio" name="auth-method" value="token" checked>
-              <span class="pill-btn">GCP OAuth Access Token</span>
-            </label>
-            <label class="radio-pill">
-              <input type="radio" name="auth-method" value="serviceAccount">
-              <span class="pill-btn">Service Account JSON Key</span>
-            </label>
-          </div>
-        </div>
-
         <!-- Access Token Option Form block -->
-        <div id="auth-box-token" class="auth-box-container visible">
+        <div id="auth-box-token" class="auth-box-container" style="display: none;">
           <div class="form-field">
             <label for="gcp-access-token" class="field-label-req">OAuth 2.0 Access Token</label>
             <textarea id="gcp-access-token" class="mono-font" placeholder="Enter output of 'gcloud auth print-access-token' (ya29.c.Ko0Bv...)"></textarea>
-            <span class="field-tip">⚠️ Note: GCP Access tokens expire after 1 hour. You will need to refresh this.</span>
+            <span class="field-tip">⚠️ Note: GCP Access tokens expire after 1 hour.</span>
           </div>
         </div>
 
         <!-- Service Account Option Form block -->
-        <div id="auth-box-sa" class="auth-box-container">
+        <div id="auth-box-sa" class="auth-box-container" style="display: none;">
           <div class="form-field">
             <label for="gcp-sa-key" class="field-label-req">Service Account JSON File / Key Contents</label>
             <textarea id="gcp-sa-key" class="mono-font" placeholder='Paste full content of your Service Account JSON private key here. e.g. {"type": "service_account", "project_id": ...}'></textarea>
-            <span class="field-tip">💡 Tip: This backend server uses RSA signature natively to exchange this for access tokens. It handles auto-refreshing for you.</span>
+            <span class="field-tip">💡 Tip: This backend server uses RSA signature natively to exchange this for access tokens and handles auto-refreshing.</span>
           </div>
         </div>
 

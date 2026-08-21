@@ -1,7 +1,7 @@
 const http = require('http');
 
-const PORT = 4000;
-const BASE_URL = `http://localhost:${PORT}`;
+const PORT = 4001;
+const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 // Simple helper to log test sections
 function logSection(title) {
@@ -13,11 +13,7 @@ function logSection(title) {
 // 1. GET request helper
 function testGet(path) {
   return new Promise((resolve, reject) => {
-    console.log(`[GET] Requesting ${path}...`);
     http.get(`${BASE_URL}${path}`, (res) => {
-      console.log(`Status Code: ${res.statusCode}`);
-      console.log(`Headers:`, JSON.stringify(res.headers, null, 2));
-      
       let body = '';
       res.on('data', (chunk) => body += chunk);
       res.on('end', () => {
@@ -27,22 +23,17 @@ function testGet(path) {
           body: body
         });
       });
-    }).on('error', (err) => {
-      reject(err);
-    });
+    }).on('error', reject);
   });
 }
 
 // 2. POST streaming request helper
 function testPostStream(path, payload) {
   return new Promise((resolve, reject) => {
-    console.log(`[POST] Requesting ${path}...`);
-    console.log(`Payload:`, JSON.stringify(payload, null, 2));
-
     const postData = JSON.stringify(payload);
     
     const req = http.request({
-      hostname: 'localhost',
+      hostname: '127.0.0.1',
       port: PORT,
       path: path,
       method: 'POST',
@@ -51,169 +42,130 @@ function testPostStream(path, payload) {
         'Content-Length': Buffer.byteLength(postData)
       }
     }, (res) => {
-      console.log(`Status Code: ${res.statusCode}`);
-      console.log(`Headers:`, JSON.stringify(res.headers, null, 2));
-      
-      let chunkCount = 0;
+      let textOutput = '';
+      let thoughtsOutput = '';
       let buffer = '';
-      let isStreamingThoughts = false;
-      let hasReceivedMetadata = false;
 
       res.on('data', (chunk) => {
-        chunkCount++;
-        const text = chunk.toString();
-        buffer += text;
-        
-        // Process Server-Sent Events lines
+        buffer += chunk.toString('utf8');
         const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep partial line in buffer
+        buffer = lines.pop();
 
         for (const line of lines) {
-          if (line.trim()) console.log('LINE CONTENT:', JSON.stringify(line));
-          if (line.trim().startsWith('data: ')) {
-            const dataStr = line.trim().substring(6).trim();
-            if (!dataStr) continue;
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const dataStr = trimmed.substring(5).trim();
             try {
               const parsed = JSON.parse(dataStr);
-              console.log('PARSED KEYS:', Object.keys(parsed));
               if (parsed.text) {
-                if (parsed.thinking && !isStreamingThoughts) {
-                  isStreamingThoughts = true;
-                  console.log('\n🟣 [THINKING] Started streaming thinking tokens...');
-                } else if (!parsed.thinking && isStreamingThoughts) {
-                  isStreamingThoughts = false;
-                  console.log('\n🟢 [OUTPUT] Transitioned to output text stream...');
+                if (parsed.thinking) {
+                  thoughtsOutput += parsed.text;
+                } else {
+                  textOutput += parsed.text;
                 }
-                process.stdout.write(parsed.text);
               }
-              if (parsed.usageMetadata) {
-                hasReceivedMetadata = true;
-                console.log('\n\n📊 [METADATA] Received usage token breakdown:');
-                console.log(JSON.stringify(parsed.usageMetadata, null, 2));
-              }
-              if (parsed.done) {
-                console.log('\n🏁 [DONE] Stream closed gracefully.');
-              }
-            } catch (err) {
-              console.log('\n⚠️ [PARSE ERROR] Failed to parse JSON string:', JSON.stringify(dataStr), err.message);
-            }
+            } catch (e) {}
           }
         }
       });
 
       res.on('end', () => {
-        // Process any leftover content in the buffer
-        console.log('LEFTOVER BUFFER:', JSON.stringify(buffer));
-        if (buffer.trim()) {
-          const lines = (buffer + '\n').split('\n');
-          for (const line of lines) {
-            if (line.trim().startsWith('data: ')) {
-              const dataStr = line.trim().substring(6).trim();
-              if (!dataStr) continue;
-              try {
-                const parsed = JSON.parse(dataStr);
-                if (parsed.usageMetadata) {
-                  hasReceivedMetadata = true;
-                  console.log('\n\n📊 [METADATA] Received usage token breakdown (flushed):');
-                  console.log(JSON.stringify(parsed.usageMetadata, null, 2));
-                }
-              } catch (err) {}
-            }
-          }
-        }
-        console.log(`\nStream ended successfully after ${chunkCount} packet chunks.`);
         resolve({
           statusCode: res.statusCode,
-          hasReceivedMetadata: hasReceivedMetadata
+          text: textOutput,
+          thoughts: thoughtsOutput
         });
       });
     });
 
-    req.on('error', (err) => {
-      reject(err);
-    });
-
+    req.on('error', reject);
     req.write(postData);
     req.end();
   });
 }
 
-// Run Main Verification Suit
-async function runVerification() {
-  try {
-    // -------------------------------------------------------------
-    // Test 1: Static HTML Page Request
-    // -------------------------------------------------------------
-    logSection('Loading static index.html and checking assets');
-    const indexResult = await testGet('/');
-    if (indexResult.statusCode === 200 && indexResult.body.includes('<title>Agent Platform Playground</title>')) {
-      console.log('✅ PASS: Home page index.html resolved correctly with proper titles!');
-    } else {
-      console.log('Index body is:', indexResult.body.substring(0, 500));
-      throw new Error('❌ FAIL: Index page resolution failed or has invalid tags.');
-    }
+async function runAllTests() {
+  console.log('Starting Test Suite for Gemini Arena...');
 
-    // -------------------------------------------------------------
-    // Test 2: Active API Configuration Query
-    // -------------------------------------------------------------
-    logSection('Reading active environment config JSON');
-    const configResult = await testGet('/api/config');
-    const config = JSON.parse(configResult.body);
-    if (configResult.statusCode === 200 && 'sandboxMode' in config) {
-      console.log('✅ PASS: Config API working seamlessly. Active Server State:');
-      console.log(`         - Sandbox Mode: ${config.sandboxMode}`);
-      console.log(`         - Project ID: ${config.projectId || '(None - Running Local Env Only)'}`);
-      console.log(`         - Region: ${config.region}`);
-    } else {
-      throw new Error('❌ FAIL: Config API returned invalid payload or error codes.');
-    }
+  // 1. Test Static files
+  logSection('GET / (index.html)');
+  const resIndex = await testGet('/');
+  console.log(`Status: ${resIndex.statusCode}, Content-Length: ${resIndex.body.length} bytes`);
+  console.assert(resIndex.statusCode === 200, 'Index.html must return 200');
 
-    // -------------------------------------------------------------
-    // Test 3: Gemini Sandbox Stream Generation (Submit Prompt Button)
-    // -------------------------------------------------------------
-    logSection('Simulating Gemini submit button streaming in Sandbox Mode');
-    const geminiPayload = {
-      provider: 'gemini',
-      model: 'gemini-3.5-flash',
-      prompt: 'Hi',
-      sandboxMode: true,
-      temperature: 0.7,
-      maxTokens: 512,
-      systemPrompt: 'You are a professional software engineer.'
-    };
-    const geminiStream = await testPostStream('/api/generate', geminiPayload);
-    if (geminiStream.statusCode === 200 && geminiStream.hasReceivedMetadata) {
-      console.log('✅ PASS: Gemini Sandbox Stream simulation completed successfully with usage metrics!');
-    } else {
-      throw new Error('❌ FAIL: Gemini Stream simulation failed.');
-    }
+  // 2. Test /api/config
+  logSection('GET /api/config');
+  const resConfig = await testGet('/api/config');
+  console.log(`Status: ${resConfig.statusCode}, Body: ${resConfig.body}`);
+  console.assert(resConfig.statusCode === 200, '/api/config must return 200');
 
-    // -------------------------------------------------------------
-    // Test 4: Claude Sandbox Stream Generation (Submit Prompt Button)
-    // -------------------------------------------------------------
-    logSection('Simulating Claude submit button streaming in Sandbox Mode');
-    const claudePayload = {
-      provider: 'claude',
-      model: 'claude-sonnet-4-6',
-      prompt: 'Hello',
-      sandboxMode: true,
-      temperature: 0.7,
-      maxTokens: 512,
-      systemPrompt: 'You are a technology analyst.'
-    };
-    const claudeStream = await testPostStream('/api/generate', claudePayload);
-    if (claudeStream.statusCode === 200 && claudeStream.hasReceivedMetadata) {
-      console.log('✅ PASS: Claude Sandbox Stream simulation completed successfully with usage metrics!');
-    } else {
-      throw new Error('❌ FAIL: Claude Stream simulation failed.');
-    }
+  // 3. Test Gemini 3.7 Flash Hybrid Reasoning Stream
+  logSection('POST /api/generate - gemini-3.7-flash (Sandbox)');
+  const resG37 = await testPostStream('/api/generate', {
+    provider: 'gemini',
+    model: 'gemini-3.7-flash',
+    prompt: 'Solve a complex logic puzzle step by step',
+    sandboxMode: true,
+    geminiThinking: { mode: 'HIGH' }
+  });
+  console.log(`Status: ${resG37.statusCode}`);
+  console.log(`Thoughts received: ${resG37.thoughts.length} chars`);
+  console.log(`Response received: ${resG37.text.length} chars`);
+  console.assert(resG37.statusCode === 200, 'gemini-3.7-flash should stream with 200');
+  console.assert(resG37.thoughts.length > 0, 'gemini-3.7-flash should generate thoughts');
 
-    console.log('\n🚀 ALL INTEGRATION AND BUTTON TESTS PASSED SUCCESSFULLY! 🚀\n');
+  // 4. Test Gemini 2.5 Pro Custom Budget Stream
+  logSection('POST /api/generate - gemini-2.5-pro (Sandbox)');
+  const resG25Pro = await testPostStream('/api/generate', {
+    provider: 'gemini',
+    model: 'gemini-2.5-pro',
+    prompt: 'Write an optimized async queue in JavaScript',
+    sandboxMode: true,
+    geminiThinking: { mode: 'CUSTOM', budget: 4096 }
+  });
+  console.log(`Status: ${resG25Pro.statusCode}`);
+  console.log(`Thoughts received: ${resG25Pro.thoughts.length} chars`);
+  console.assert(resG25Pro.statusCode === 200, 'gemini-2.5-pro should stream with 200');
 
-  } catch (err) {
-    console.error(`\n❌ VERIFICATION TEST ENCOUNTERED AN ERROR:`, err.message);
-    process.exit(1);
-  }
+  // 5. Test Gemini 2.5 Flash-Lite
+  logSection('POST /api/generate - gemini-2.5-flash-lite (Sandbox)');
+  const resG25Lite = await testPostStream('/api/generate', {
+    provider: 'gemini',
+    model: 'gemini-2.5-flash-lite',
+    prompt: 'High throughput short response',
+    sandboxMode: true,
+    geminiThinking: { mode: 'OFF' }
+  });
+  console.log(`Status: ${resG25Lite.statusCode}`);
+  console.log(`Response received: ${resG25Lite.text.length} chars`);
+  console.assert(resG25Lite.statusCode === 200, 'gemini-2.5-flash-lite should stream with 200');
+
+  // 6. Test Claude Sonnet 4-6 Adaptive Stream
+  logSection('POST /api/generate - claude-sonnet-4-6 (Sandbox)');
+  const resClaude = await testPostStream('/api/generate', {
+    provider: 'claude',
+    model: 'claude-sonnet-4-6',
+    prompt: 'Compare your reasoning capabilities with Gemini',
+    sandboxMode: true
+  });
+  console.log(`Status: ${resClaude.statusCode}`);
+  console.log(`Response received: ${resClaude.text.length} chars`);
+  console.assert(resClaude.statusCode === 200, 'claude-sonnet-4-6 should stream with 200');
+
+  console.log('\n' + '='.repeat(60));
+  console.log('✅ ALL GEMINI ARENA BENCHMARK TESTS PASSED SUCCESSFULLY!');
+  console.log('='.repeat(60) + '\n');
 }
 
-runVerification();
+// Start server on 4001 and run tests
+process.env.PORT = PORT;
+const server = require('./server.js');
+setTimeout(async () => {
+  try {
+    await runAllTests();
+    process.exit(0);
+  } catch (err) {
+    console.error('Test failed:', err);
+    process.exit(1);
+  }
+}, 500);

@@ -1,24 +1,46 @@
-# Vertex AI Playground — Gemini & Claude Arena
+# Gemini Arena & Benchmarking Suite — Vertex AI & Google AI Studio
 
-A sleek, premium, and zero-dependency local web playground designed to let you interact, test, and perform side-by-side stream duels between **Google Gemini** and **Anthropic Claude** models hosted on **Google Cloud Vertex AI**. 
+A sleek, premium, and zero-dependency local web arena designed to benchmark, interact with, and perform side-by-side stream duels between **Google Gemini (3.7 / 3.6 / 3.5 / 3.0 / 2.5 / 2.0 / 1.5 Series)** and **Anthropic Claude** models across **Google AI Studio** and **Google Cloud Vertex AI**.
 
-It runs on a local lightweight Node server using native Mac capabilities without requiring an `npm install` or any package configuration.
+Runs on a lightweight vanilla Node server with zero `node_modules` required.
 
-![Agent Platform Playground - Gemini & Claude Arena](playground_screenshot.png)
+![Gemini Arena & Benchmarking Suite](playground_screenshot.png)
 
 ---
 
-## 🎨 Key Features
+## 🎨 Key Features & Innovations
 
-- **Double-Stream "Duel" Arena**: Put Gemini and Claude side-by-side! A single shared prompt box submits requests concurrently to both endpoints and streams their outputs in real time.
-- **Out-of-the-Box "Sandbox Mode"**: Test the interface immediately! Enabled by default, Sandbox Mode streams simulated responses detailing the behind-the-scenes REST configurations, payloads, and protocols.
-- **Zero-Dependency Architecture**: Built on pure, vanilla HTML, CSS, JavaScript, and native Node.js core libraries. Zero `node_modules` folders, zero path installation errors.
-- **Native GCP Service Account OAuth Signer**: Enter a Service Account JSON key, and the built-in Node `crypto` engine signs JWT assertions and auto-refreshes tokens natively.
-- **Comprehensive Live Metrics**:
-  - **TTFT**: Time To First Token in milliseconds.
-  - **Tokens/sec**: Streaming speed index.
-  - **Tokens Count**: Total output tokens generated.
-  - **Est. Cost**: Continuous pricing counter matching live Google Cloud rates.
+- **Comprehensive Gemini 3.x & 2.5 Support**:
+  - `gemini-3.7-flash` (State-of-the-Art Hybrid Reasoning Default)
+  - `gemini-3.6-flash` & `gemini-3.5-flash`
+  - `gemini-3.0-flash` & `gemini-3.0-pro`
+  - `gemini-2.5-pro` (SOTA Reasoning & Coding)
+  - `gemini-2.5-flash` & `gemini-2.5-flash-lite` (High Speed & Throughput)
+  - `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-2.0-pro-exp-02-05`
+  - `gemini-1.5-pro` & `gemini-1.5-flash`
+  - **Custom Model ID Entry**: Benchmark any fine-tuned or custom endpoint.
+- **Dual Authentication Modes**:
+  - **Google AI Studio API Key (`AIzaSy...`)**: Instant live access with zero GCP configuration required.
+  - **Google Cloud Vertex AI**: Native OAuth Access Token (`gcloud`) or Service Account JSON key (with native RSA-SHA256 JWT signing and auto-refresh).
+- **Automated Benchmarking Suites**:
+  - **Reasoning & Logic**: Logic grids, counterfactual physics, causality, ARC-AGI pattern shifts.
+  - **SWE-Bench & Coding**: Package imports, async memory leaks, MongoDB race conditions, cyclic graph coloring.
+  - **IFEval & Constraints**: Negative constraints, character prohibitions, exact word counts, strict JSON schema output.
+  - **Math & Science**: Bayes theorem, combinatorics proofs, dynamical stability.
+  - **Latency & Stress**: High-throughput bursts, sorted dictionary synthesis, code golf.
+  - **Batch Runner**: One-click execution of entire benchmark categories.
+- **Real-Time Telemetry & Head-to-Head Scorecard**:
+  - ⚡ **TTFT (Time To First Token)** with latency delta.
+  - 🚀 **Tokens/sec (TPS)** streaming speed meter & live Canvas chart.
+  - 🧠 **Reasoning Tokens**: Dedicated tracking and segmented breakdown bar.
+  - 💰 **Dynamic Est. Cost**: Live rate calculation per 1M tokens.
+  - 🏆 **Winner Verdict**: Automatically scores speed, latency, and cost efficiency.
+  - 📥 **Export Reports**: Download benchmark results in Markdown, JSON, or CSV.
+- **Modern Web Dev UX**:
+  - Themes: **Cyber Dark**, **Deep OLED Black**, and **Studio Light**.
+  - Rich Markdown renderer with syntax-highlighted code blocks and 1-click copy buttons.
+  - Collapsible reasoning trace drawer with trace token counts and copy button.
+  - Keyboard shortcuts (`Cmd/Ctrl+Enter` to duel, `Cmd/Ctrl+K` to clear, `Esc` to close modal).
 
 ---
 
@@ -29,9 +51,9 @@ It runs on a local lightweight Node server using native Mac capabilities without
    cd vertex-ai-playground
    ```
 
-2. Run the server using your native Antigravity Node helper:
+2. Run the server using native Node:
    ```bash
-   agy-node server.js
+   node server.js
    ```
 
 3. Open your browser and navigate to:
@@ -39,55 +61,47 @@ It runs on a local lightweight Node server using native Mac capabilities without
    http://localhost:4000
    ```
 
-4. You will see the **Sandbox Mode** active immediately. Type a prompt (e.g., `Compare your strengths`) and press **Enter** or click **DUEL STREAM** to watch the concurrent, high-fidelity streamed comparison in action!
+4. **Sandbox Mode** is active immediately out-of-the-box. Pick any benchmark prompt or type a custom message and hit **DUEL STREAM**!
 
 ---
 
-## 🔑 Setting up Google Cloud Credentials
+## 🔑 Authentication Options
 
-To switch from **Sandbox Mode** to **Live Model Mode**, untoggle the "Sandbox Mode" switch in the sidebar, click the **GCP Credentials** button on the top right, and configure your settings.
+To run live models against Google endpoints:
 
-### Method 1: Short-Lived OAuth Access Token (Fastest for testing)
-Use this if you have the Google Cloud SDK (`gcloud`) installed on your Mac:
+### Option 1: Google AI Studio API Key (Fastest Setup)
+1. Get a free API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+2. Click **API & Auth** in the top right of the playground.
+3. Select **Google AI Studio API Key**, paste your `AIzaSy...` key, and click **Save Settings**.
+4. (Optional) Alternatively, export `GEMINI_API_KEY="your_api_key"` in a `.env` file.
 
-1. Open your Mac terminal and print a fresh token:
+### Option 2: Google Cloud Vertex AI (OAuth Access Token)
+1. Generate a token via Google Cloud SDK:
    ```bash
    gcloud auth print-access-token
    ```
-2. Copy the output token string (starts with `ya29.c...`).
-3. Paste it in the **OAuth 2.0 Access Token** field, fill in your **GCP Project ID**, select your **GCP Region**, and click **Save Settings**.
+2. In the **API & Auth** modal, select **GCP OAuth Access Token**, provide your **Project ID**, **Region**, and token.
 
-> ⚠️ **Note**: Access tokens generated via `gcloud` expire after **1 hour**. You will need to re-print and paste a new token when it expires.
-
----
-
-### Method 2: Service Account JSON Key (Recommended for long-term use)
-This method allows the local server to sign assertions and obtain/refresh tokens automatically behind the scenes.
-
-1. Go to the [Google Cloud Console](https://console.cloud.google.com).
-2. Navigate to **IAM & Admin** > **Service Accounts**.
-3. Click **Create Service Account**:
-   - Provide a name (e.g., `vertex-playground-user`).
-   - Grant the role: **Vertex AI User** (`roles/aiplatform.user`).
-   - Click Done.
-4. Click on your newly created Service Account, go to the **Keys** tab, click **Add Key** > **Create New Key**, select **JSON**, and download the file.
-5. Open the downloaded `.json` file in a text editor, copy its entire contents, and paste it into the **Service Account JSON File / Key Contents** textbox in the Playground Credentials panel.
-6. Enter your **GCP Project ID**, select your region, and click **Save Settings**.
+### Option 3: Google Cloud Vertex AI (Service Account JSON)
+1. In the **API & Auth** modal, select **GCP Service Account JSON**.
+2. Paste the contents of your Service Account JSON key. The server automatically signs assertions via native RSA crypto.
 
 ---
 
 ## 📊 Supported Models & Pricing Reference
 
-| Provider | Model ID | Input Rate (per 1M) | Output Rate (per 1M) | Notes / Capability |
+| Provider | Model ID | Input (per 1M) | Output (per 1M) | Primary Capability |
 | :--- | :--- | :--- | :--- | :--- |
-| **Google** | `gemini-3.5-flash` | $1.50 | $9.00 | Latest Stable Default, Level Thinking Config |
-| **Google** | `gemini-2.5-flash` | $0.30 | $2.50 | Stable Flash, Token Budget Thinking |
-| **Google** | `gemini-2.5-pro` | $1.25 | $10.00 | Stable Pro, Token Budget Thinking |
-| **Google** | `gemini-2.0-flash` | $0.075 | $0.30 | Deprecated, Legacy Generation |
-| **Anthropic** | `claude-sonnet-4-6` | $3.00 | $15.00 | Latest Sonnet, Adaptive Thinking |
-| **Anthropic** | `claude-opus-4-7` | $5.00 | $25.00 | Latest Opus, Adaptive Thinking |
-| **Anthropic** | `claude-haiku-4-5@20251001` | $1.00 | $5.00 | Speed/Cost Optimizations |
-| **Anthropic** | `claude-3-5-sonnet@20241022` | $3.00 | $15.00 | Legacy Sonnet v2 |
-
-*Costs are calculated dynamically on the fly based on these rate specifications as tokens stream down.*
-
+| **Google** | `gemini-3.7-flash` | $0.075 | $0.30 | SOTA Hybrid Reasoning & Thinking Budget |
+| **Google** | `gemini-3.6-flash` | $0.075 | $0.30 | Gemini 3.x Series |
+| **Google** | `gemini-3.5-flash` | $0.075 | $0.30 | Gemini 3.5 Series |
+| **Google** | `gemini-3.0-flash` | $0.075 | $0.30 | Gemini 3.0 Flash Preview |
+| **Google** | `gemini-3.0-pro` | $1.25 | $5.00 | Gemini 3.0 Pro Reasoning |
+| **Google** | `gemini-2.5-pro` | $1.25 | $5.00 | Heavyweight Coding & Deep Logic |
+| **Google** | `gemini-2.5-flash` | $0.075 | $0.30 | Versatile Multimodal Workhorse |
+| **Google** | `gemini-2.5-flash-lite` | $0.0375 | $0.15 | Ultra Low Latency & High Throughput |
+| **Google** | `gemini-2.0-flash` | $0.075 | $0.30 | Rapid Response Speed |
+| **Google** | `gemini-1.5-pro` | $1.25 | $5.00 | 2M Context Window |
+| **Anthropic** | `claude-sonnet-4-6` | $3.00 | $15.00 | High-Effort Reasoning |
+| **Anthropic** | `claude-opus-4-7` | $5.00 | $25.00 | Deep Analysis |
+| **Anthropic** | `claude-haiku-4-5` | $1.00 | $5.00 | Cost / Latency Optimized |
